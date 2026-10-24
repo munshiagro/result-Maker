@@ -1,742 +1,292 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#075985" />
-  <title>রেজাল্ট শিট মেকার</title>
-  <style>
-    :root {
-      --primary: #0369a1;
-      --primary-dark: #075985;
-      --primary-soft: #e0f2fe;
-      --bg: #f3f8fc;
-      --surface: #ffffff;
-      --text: #172033;
-      --muted: #64748b;
-      --border: #d8e6f2;
-      --danger: #b91c1c;
-      --warning: #92400e;
-      --success: #166534;
-      --shadow: 0 8px 28px rgba(7, 89, 133, .07);
-      font-family: "Noto Sans Bengali", "Hind Siliguri", "SolaimanLipi", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.55; }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-    .topbar { background: linear-gradient(120deg, #0c4a6e, #075985 65%, #0284c7); color: white; padding: 26px 18px 30px; }
-    .topbar-inner, main, .footer-inner { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
-    .brand-row { display:flex; align-items:center; gap: 13px; }
-    .brand-icon { width: 48px; height: 48px; display:grid; place-items:center; border-radius: 15px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); font-size: 25px; }
-    h1 { margin: 0; font-size: clamp(1.45rem, 3vw, 2rem); line-height: 1.25; }
-    .topbar p { margin: 7px 0 0; color: #e0f2fe; }
-    .steps { display:flex; align-items:center; flex-wrap:wrap; gap: 8px; margin-top: 22px; }
-    .step { display:flex; align-items:center; gap:8px; padding: 7px 12px; border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.1); border-radius:999px; font-size:.9rem; }
-    .step b { display:grid; place-items:center; width:23px; height:23px; border-radius:50%; color:var(--primary-dark); background:#fff; font-size:.8rem; }
-    main { padding: 24px 0 40px; }
-    .card { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:22px; margin-bottom:18px; box-shadow:var(--shadow); }
-    .card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:16px; }
-    h2 { margin:0; font-size:1.2rem; line-height:1.4; }
-    h3 { font-size:1rem; margin:0 0 10px; }
-    .sub { margin:5px 0 0; color:var(--muted); font-size:.92rem; }
-    .tag { background:#e0f2fe; color:#075985; border:1px solid #bae6fd; padding:4px 9px; border-radius:999px; font-size:.78rem; white-space:nowrap; }
-    .drop-zone { border:2px dashed #7dd3fc; background:#f0f9ff; border-radius:15px; text-align:center; padding:28px 18px; transition:.15s ease; }
-    .drop-zone.dragover { border-color:var(--primary); background:#e0f2fe; }
-    .upload-icon { font-size:2.2rem; margin-bottom:6px; }
-    .drop-zone strong { display:block; font-size:1.02rem; }
-    .drop-zone p { color:var(--muted); margin:5px 0 15px; font-size:.9rem; }
-    .muted { color:var(--muted); }
-    .small { font-size:.84rem; }
-    .row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-    .grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; }
-    .field { display:flex; flex-direction:column; gap:6px; min-width:0; }
-    .field label { font-size:.9rem; font-weight:650; }
-    input[type="text"], input[type="number"], select, textarea { width:100%; min-width:0; border:1px solid #cbd5e1; border-radius:10px; padding:10px 12px; color:var(--text); background:#fff; outline:none; }
-    input:focus, select:focus, textarea:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(3,105,161,.12); }
-    textarea { resize:vertical; min-height:104px; }
-    .btn { border:1px solid transparent; display:inline-flex; align-items:center; justify-content:center; gap:7px; border-radius:10px; padding:10px 15px; font-weight:700; transition:.15s ease; }
-    .btn-primary { background:var(--primary); color:white; }
-    .btn-primary:hover { background:var(--primary-dark); }
-    .btn-outline { background:#fff; color:var(--text); border-color:#cbd5e1; }
-    .btn-outline:hover { background:#f8fafc; }
-    .btn-danger { background:#fff1f2; color:var(--danger); border-color:#fecdd3; }
-    .btn:disabled { cursor:not-allowed; opacity:.45; }
-    .notice { border-radius:11px; padding:11px 13px; font-size:.9rem; margin-top:12px; }
-    .notice-info { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
-    .notice-warn { background:#fffbeb; color:var(--warning); border:1px solid #fde68a; }
-    .notice-success { background:#f0fdf4; color:var(--success); border:1px solid #bbf7d0; }
-    .hidden { display:none !important; }
-    .divider { border:0; border-top:1px solid var(--border); margin:20px 0; }
-    .question-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
-    table { width:100%; border-collapse:collapse; font-size:.9rem; }
-    th, td { padding:10px 11px; border-bottom:1px solid #e8edf4; text-align:left; vertical-align:middle; }
-    th { background:#f8fafc; color:#334155; font-weight:750; white-space:nowrap; }
-    tr:last-child td { border-bottom:0; }
-    .question-table { min-width:720px; }
-    .question-table input[type="text"] { min-width:180px; }
-    .question-table input[type="number"] { width:88px; }
-    .question-name { max-width:360px; min-width:240px; overflow-wrap:anywhere; }
-    .check-inline { display:flex; align-items:flex-start; gap:9px; font-size:.9rem; }
-    .check-inline input { margin-top:5px; accent-color:var(--primary); }
-    .stat-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; margin-bottom:17px; }
-    .stat { padding:15px; border:1px solid var(--border); border-radius:13px; background:#f8fcff; }
-    .stat .label { color:var(--muted); font-size:.85rem; }
-    .stat .value { font-size:1.5rem; font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums; }
-    .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .toolbar .search { flex:1 1 220px; }
-    .toolbar select { width:auto; min-width:165px; }
-    .results-table { min-width:980px; }
-    .results-table td.num, .results-table th.num { text-align:right; font-variant-numeric:tabular-nums; }
-    .results-table tbody tr:hover { background:#f8fafc; }
-    .empty { text-align:center; padding:28px 14px; color:var(--muted); }
-    .status-pill { display:inline-block; padding:3px 8px; border-radius:999px; font-size:.78rem; font-weight:700; }
-    .pill-good { background:#dcfce7; color:#166534; }
-    .pill-pending { background:#fef3c7; color:#92400e; }
-    .pill-error { background:#fee2e2; color:#991b1b; }
-    .footer { padding:4px 0 28px; color:var(--muted); text-align:center; font-size:.85rem; }
-    .footer a { color:var(--primary-dark); }
-    @media (max-width:800px) { .grid { grid-template-columns:1fr; } .stat-grid { grid-template-columns:repeat(2, minmax(0,1fr)); } .card { padding:17px; } .card-head { gap:8px; } }
-    @media (max-width:480px) { .topbar-inner, main, .footer-inner { width: min(100% - 20px, 1180px); } .topbar { padding:21px 0 24px; } .step { font-size:.8rem; padding:6px 9px; } .stat { padding:12px; } .stat .value { font-size:1.25rem; } .btn { padding:9px 11px; font-size:.9rem; } }
-
-
-    /* Compact dashboard layout inspired by the supplied reference screenshot */
-    :root {
-      --primary: #0369a1;
-      --primary-dark: #075985;
-      --primary-soft: #e0f2fe;
-      --bg: #eef5f8;
-      --surface: #ffffff;
-      --text: #102a3a;
-      --muted: #607987;
-      --border: #d5e3ea;
-      --shadow: 0 3px 12px rgba(7, 89, 133, .08);
-    }
-    body { background: #eef4f6; }
-    .topbar { padding: 10px 0; background: #075985; }
-    .topbar-inner, main, .footer-inner { width: min(1580px, calc(100% - 24px)); }
-    .topbar-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; }
-    .brand-row { gap:10px; min-width:0; }
-    .brand-icon { width:38px; height:38px; border-radius:10px; font-size:20px; }
-    h1 { font-size:clamp(1.05rem, 2vw, 1.45rem); }
-    .topbar p { margin-top:2px; font-size:.76rem; }
-    .steps { margin-top:0; gap:5px; justify-content:flex-end; }
-    .step { padding:5px 9px; gap:5px; font-size:.78rem; white-space:nowrap; }
-    .step b { width:20px; height:20px; font-size:.72rem; }
-    main { padding:14px 0 22px; }
-    .dashboard-layout { display:grid; grid-template-columns:minmax(230px, 285px) minmax(0, 1fr); gap:12px; align-items:start; }
-    .sidebar, .main-content { min-width:0; }
-    .card { padding:13px; border-radius:13px; margin-bottom:11px; box-shadow:var(--shadow); }
-    .card-head { gap:8px; margin-bottom:10px; }
-    h2 { font-size:1rem; }
-    h3 { font-size:.92rem; margin-bottom:8px; }
-    .sub { margin-top:3px; font-size:.78rem; line-height:1.45; }
-    .tag { padding:3px 7px; font-size:.7rem; }
-    .upload-card .card-head { margin-bottom:8px; }
-    .upload-card .card-head .sub { display:none; }
-    .upload-card .card-head .tag { display:none; }
-    .drop-zone { padding:12px 10px; border-radius:10px; }
-    .upload-icon { font-size:1.45rem; margin-bottom:3px; }
-    .drop-zone strong { font-size:.86rem; }
-    .drop-zone p { margin:3px 0 8px; font-size:.75rem; line-height:1.4; }
-    .upload-card .notice { padding:7px 8px; font-size:.73rem; line-height:1.45; margin-top:8px; }
-    .upload-card .notice-info:last-child { display:none; }
-    #fileNameLabel { overflow-wrap:anywhere; font-size:.72rem; }
-    .btn { padding:8px 11px; border-radius:9px; font-size:.82rem; }
-    .sidebar .grid { grid-template-columns:1fr; gap:9px; }
-    .sidebar .field label { font-size:.78rem; }
-    .sidebar input[type="text"], .sidebar input[type="number"], .sidebar select, .sidebar textarea { padding:8px 9px; border-radius:8px; font-size:.8rem; }
-    .sidebar textarea { min-height:92px; }
-    .written-card .card-head .sub { font-size:.75rem; }
-    .written-card .divider { margin:12px 0; }
-    .written-card .row { gap:6px; }
-    .written-card .row .btn { font-size:.75rem; padding:7px 8px; }
-    .mapping-card { max-height:430px; overflow:auto; }
-    .mapping-card .notice { padding:8px 9px; margin-top:8px; font-size:.76rem; }
-    .mapping-card .divider { margin:12px 0; }
-    .mapping-card .question-table { min-width:450px; }
-    .mapping-card th, .mapping-card td { padding:6px 7px; font-size:.75rem; }
-    .mapping-card .question-table input[type="text"] { min-width:130px; padding:6px 7px; }
-    .mapping-card .question-table input[type="number"] { width:64px; padding:6px 7px; }
-    .mapping-card .row { align-items:flex-start; }
-    .mapping-card .check-inline { font-size:.76rem; }
-    .stat-grid { grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; margin-bottom:11px; }
-    .stat { padding:10px 11px; border-radius:11px; background:#fff; }
-    .stat .label { font-size:.73rem; }
-    .stat .value { font-size:1.25rem; margin-top:1px; color:#075985; }
-    .results-card .card-head { margin-bottom:10px; }
-    .results-card .card-head .sub, .results-card .card-head .tag { display:none; }
-    .toolbar { gap:7px; }
-    .toolbar .search { flex:1 1 160px; }
-    .toolbar input[type="text"], .toolbar select { padding:8px 9px; font-size:.78rem; }
-    .toolbar select { min-width:125px; }
-    .results-card .btn { padding:8px 9px; font-size:.75rem; }
-    .results-card .question-wrap { border-radius:10px; }
-    .results-table { min-width:790px; }
-    .results-table th, .results-table td { padding:7px 7px; font-size:.74rem; }
-    .results-table th { background:#f0f8fc; }
-    .results-table tbody tr:hover { background:#f0f9ff; }
-    .results-table td:nth-child(9) { font-weight:700; color:#075985; }
-    .results-table td:nth-child(10) { font-weight:800; color:#075985; }
-    .results-card > p.small { font-size:.73rem; margin-top:9px; }
-    .footer { font-size:.75rem; padding:2px 0 16px; }
-    @media (max-width: 900px) {
-      .dashboard-layout { grid-template-columns:minmax(210px, 260px) minmax(0,1fr); gap:9px; }
-      .topbar-inner { align-items:flex-start; }
-      .steps { flex-wrap:wrap; }
-      .step { font-size:.7rem; }
-      .stat-grid { grid-template-columns:repeat(2, minmax(0,1fr)); }
-    }
-    @media (max-width: 680px) {
-      .topbar-inner { flex-direction:column; align-items:stretch; }
-      .steps { justify-content:flex-start; }
-      .dashboard-layout { grid-template-columns:1fr; }
-      .sidebar { display:grid; grid-template-columns:1fr; }
-      .mapping-card { max-height:none; }
-      .main-content { min-width:0; }
-      .stat-grid { grid-template-columns:repeat(2, minmax(0,1fr)); }
-      .results-table { min-width:790px; }
-      .topbar-inner, main, .footer-inner { width:calc(100% - 16px); }
-    }
-
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#075985">
+<title>রেজাল্ট শিট মেকার</title>
+<style>
+:root{--blue:#075985;--blue2:#0369a1;--blue3:#0c4a6e;--sky:#e0f2fe;--sky2:#f0f9ff;--bg:#eef4f6;--white:#fff;--text:#102a3a;--muted:#617987;--line:#d7e4e9;--green:#047857;--green-bg:#dff5ec;--amber:#92400e;--amber-bg:#fff4dc;--red:#b91c1c;--red-bg:#fee2e2;--shadow:0 3px 12px rgba(7,89,133,.08);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Bengali","Hind Siliguri",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-size:14px;line-height:1.45}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.topbar{background:linear-gradient(115deg,#0c4a6e,#075985);color:white;padding:12px 0;position:relative;overflow:hidden}.topbar:after{content:"";position:absolute;right:15px;top:-45px;width:240px;height:180px;opacity:.12;background-image:radial-gradient(circle,#bfe9ff 4px,transparent 4.5px);background-size:28px 28px;pointer-events:none}.topbar-inner,main,.footer-inner{width:min(1500px,calc(100% - 28px));margin:auto}.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:18px;position:relative;z-index:1}.brand{display:flex;align-items:center;gap:10px;min-width:0}.brand-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:11px;background:#087b64;color:white;font-size:23px;flex:none}.brand h1{font-size:clamp(1.1rem,2vw,1.55rem);margin:0;line-height:1.25}.brand p{margin:3px 0 0;color:#c8f3f4;font-size:.78rem}.steps{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}.step{display:flex;align-items:center;gap:6px;white-space:nowrap;border:1px solid #ffffff37;border-radius:999px;padding:5px 9px;background:#ffffff12;font-size:.78rem;color:#eaf9ff}.step b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:var(--blue);font-size:.72rem}
+main{padding:14px 0 24px}.layout{display:grid;grid-template-columns:minmax(245px,285px) minmax(0,1fr);gap:12px;align-items:start}.sidebar,.maincol{min-width:0}.card{background:var(--white);border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:11px;box-shadow:var(--shadow);min-width:0}.cardhead{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;margin-bottom:10px}.cardhead h2{font-size:.98rem;line-height:1.35;margin:0}.cardhead p{font-size:.77rem;color:var(--muted);margin:4px 0 0}.tag{flex:none;font-size:.69rem;background:var(--sky);border:1px solid #bae6fd;color:var(--blue);border-radius:999px;padding:3px 7px}.dropzone{border:1.5px dashed #71b8d7;background:#f1faff;border-radius:10px;text-align:center;padding:13px 9px;transition:background .15s,border-color .15s}.dropzone.dragover{background:#dff3ff;border-color:var(--blue2)}.uploadicon{font-size:1.6rem}.dropzone strong{display:block;font-size:.86rem;margin:2px 0}.dropzone p{color:var(--muted);font-size:.74rem;margin:3px 0 9px}.filename{font-size:.72rem;color:var(--muted);margin-top:8px;overflow-wrap:anywhere}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.field label{font-size:.78rem;font-weight:700}.field input[type=text],.field input[type=number],.field select,.field textarea,.toolbar input,.toolbar select{width:100%;min-width:0;border:1px solid #cbd9e0;border-radius:8px;background:#fff;color:var(--text);padding:8px 9px;outline:none}.field input:focus,.field select:focus,.field textarea:focus,.toolbar input:focus,.toolbar select:focus{border-color:var(--blue2);box-shadow:0 0 0 3px #0284c71b}.field textarea{min-height:115px;resize:vertical}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:9px}.threecol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid transparent;border-radius:9px;padding:8px 10px;font-weight:750;font-size:.78rem;white-space:nowrap}.primary{color:white;background:var(--blue2)}.primary:hover{background:var(--blue3)}.green{color:#fff;background:#0b8061}.green:hover{background:#06684f}.outline{color:var(--text);background:white;border-color:#cbd9e0}.outline:hover{background:#f3f9fc}.danger{color:#b91c1c;background:#fff1f2;border-color:#fecdd3}.wide{width:100%}.row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.row.between{justify-content:space-between}.muted{color:var(--muted)}.tiny{font-size:.72rem}.help{font-size:.75rem;color:var(--muted);margin:8px 0 0}.notice{padding:9px 10px;border:1px solid;border-radius:9px;font-size:.76rem;line-height:1.5;margin-top:9px}.info{background:#eff8ff;border-color:#bfdbfe;color:#1e40af}.warn{background:var(--amber-bg);border-color:#f5d08b;color:var(--amber)}.success{background:#e8f8f0;border-color:#a7dfc3;color:#166534}.error{background:#fff1f2;border-color:#fecdd3;color:#991b1b}.hidden{display:none!important}.divider{border:0;border-top:1px solid var(--line);margin:12px 0}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:11px}.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow)}.stat .label{font-size:.72rem;color:var(--muted)}.stat .value{font-size:1.3rem;font-weight:850;line-height:1.4;color:var(--blue);margin-top:1px;font-variant-numeric:tabular-nums}.toolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:11px}.toolbar .search{flex:1 1 170px}.toolbar select{width:auto;min-width:130px}.toolbar .btn{padding:8px 9px;font-size:.74rem}.tablewrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;font-size:.74rem}th,td{padding:8px 8px;text-align:left;border-bottom:1px solid #e6eef2;vertical-align:middle;white-space:nowrap}th{background:#eff8fc;font-weight:800;color:#27485a;position:sticky;top:0;z-index:1}tbody tr:hover{background:#f6fbfe}tbody tr:last-child td{border-bottom:0}.numeric{text-align:right;font-variant-numeric:tabular-nums}.results-table{min-width:900px}.results-table td:nth-child(9),.results-table td:nth-child(10){font-weight:750;color:#075985}.pill{display:inline-block;padding:3px 7px;border-radius:999px;font-size:.68rem;font-weight:750}.pill-good{color:#166534;background:#dcfce7}.pill-pending{color:#92400e;background:#fef3c7}.pill-error{color:#991b1b;background:#fee2e2}.pill-key{color:#075985;background:#e0f2fe}.empty{text-align:center;padding:25px 12px;color:var(--muted);white-space:normal}.qtable{min-width:600px}.qtable input[type=text]{min-width:150px;width:100%;border:1px solid #cbd9e0;border-radius:7px;padding:7px}.qtable input[type=number]{width:72px;border:1px solid #cbd9e0;border-radius:7px;padding:7px}.check{display:flex;align-items:flex-start;gap:7px;font-size:.76rem;line-height:1.4}.check input{margin-top:3px;accent-color:var(--blue2)}.footer{font-size:.75rem;color:var(--muted);text-align:center;padding:2px 0 18px}.filepill{display:flex;align-items:center;gap:8px;padding:9px;background:#f3faf7;border:1px solid #d1e8dd;border-radius:9px;margin-top:8px}.filepill .badgeicon{display:grid;place-items:center;background:#0b8061;color:white;width:29px;height:29px;border-radius:7px;flex:none}.filepill strong{font-size:.75rem;display:block;overflow-wrap:anywhere}.filepill span{font-size:.68rem;color:var(--muted)}details summary{cursor:pointer;color:var(--blue);font-size:.76rem;font-weight:750}.details-body{padding-top:8px}.statnote{font-size:.72rem;color:var(--muted);margin:8px 0 0}
+@media(max-width:900px){.layout{grid-template-columns:245px minmax(0,1fr);gap:9px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar-inner{align-items:flex-start}.steps{max-width:45%}}
+@media(max-width:680px){.topbar-inner,main,.footer-inner{width:calc(100% - 16px)}.topbar-inner{flex-direction:column;align-items:stretch}.steps{max-width:none;justify-content:flex-start}.layout{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:1fr}.threecol{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:11px}.toolbar .btn{flex:1 1 auto}.toolbar select{flex:1}.results-table{min-width:900px}}
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand-row">
-        <div class="brand-icon" aria-hidden="true">📊</div>
-        <div>
-          <h1>রেজাল্ট শিট মেকার</h1>
-          <p>Google Form-এর উত্তর থেকে Excel রেজাল্ট তৈরি করুন</p>
-        </div>
-      </div>
-      <div class="steps" aria-label="কাজের ধাপ">
-        <div class="step"><b>১</b> ফাইল দিন</div>
-        <div class="step"><b>২</b> লিখিত নম্বর বসান</div>
-        <div class="step"><b>৩</b> রেজাল্ট ডাউনলোড</div>
-      </div>
+<header class="topbar"><div class="topbar-inner">
+  <div class="brand"><div class="brand-icon" aria-hidden="true">▦</div><div><h1>রেজাল্ট শিট মেকার</h1><p>Google Form Responses থেকে MCQ + লিখিত নম্বরের ফলাফল</p></div></div>
+  <nav class="steps" aria-label="কাজের ধাপ"><span class="step"><b>১</b> ফাইল দিন</span><span class="step"><b>২</b> MCQ উত্তর দিন</span><span class="step"><b>৩</b> লিখিত নম্বর বসান</span><span class="step"><b>৪</b> ডাউনলোড</span></nav>
+</div></header>
+<main><div class="layout">
+<aside class="sidebar">
+  <section class="card">
+    <div class="cardhead"><div><h2>① ফাইল ও সেটিংস</h2><p>Google Form থেকে ডাউনলোড করা Responses ফাইল আপলোড করুন।</p></div><span class="tag">ধাপ ১</span></div>
+    <div class="dropzone" id="dropZone"><div class="uploadicon">📄</div><strong>Responses Excel/CSV দিন</strong><p>.xlsx বা .csv ফাইল বেছে নিন / এখানে টেনে আনুন</p><input id="fileInput" type="file" accept=".xlsx,.csv" hidden><button class="btn primary" type="button" id="chooseFileBtn">ফাইল বেছে নিন</button><div class="filename" id="fileNameLabel">এখনও কোনো ফাইল দেওয়া হয়নি</div></div>
+    <div class="filepill hidden" id="filePill"><div class="badgeicon">XLSX</div><div><strong id="filePillName">ফাইল</strong><span id="filePillRows">0টি রেসপন্স</span></div></div>
+    <div id="uploadMessage" class="notice info hidden" role="status"></div>
+    <div id="sheetPickerWrap" class="field hidden" style="margin-top:9px"><label for="sheetPicker">কোন শিটের রেসপন্স নেবেন?</label><select id="sheetPicker"></select></div>
+    <hr class="divider">
+    <div class="field"><label for="resultTitle">পরীক্ষার নাম</label><input id="resultTitle" type="text" value="পরীক্ষার ফলাফল"></div>
+    <div class="field" style="margin-top:9px"><label for="negativeMark">প্রতি ভুল MCQ-তে কাটা নম্বর</label><input id="negativeMark" type="number" min="0" step="0.01" value="0.25"></div>
+    <div class="twocol" style="margin-top:9px">
+      <div class="field"><label for="nameCol">নামের কলাম</label><select id="nameCol" disabled><option>ফাইল দিন</option></select></div>
+      <div class="field"><label for="rollCol">রোলের কলাম</label><select id="rollCol" disabled><option>ফাইল দিন</option></select></div>
     </div>
-  </header>
-
-  <main>
-    <div class="dashboard-layout">
-      <aside class="sidebar" aria-label="ফাইল ও নম্বর সেটিংস">
-    <section class="card upload-card" id="uploadCard">
-      <div class="card-head">
-        <div>
-          <h2>Google Form-এর Responses ফাইলটি দিন</h2>
-          <p class="sub">Google Form থেকে ডাউনলোড করা Excel (.xlsx) ফাইল এখানে দিন। আগে তৈরি করা Excel রেজাল্টও পরীক্ষা করে ব্যবহার করতে পারবেন।</p>
-        </div>
-        <span class="tag">ধাপ ১</span>
-      </div>
-      <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Excel ফাইল বেছে নিন">
-        <div class="upload-icon" aria-hidden="true">📄</div>
-        <strong>Google Form Responses ফাইল দিন</strong>
-        <p>Excel বা CSV ফাইল বেছে নিন</p>
-        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden" />
-        <button type="button" class="btn btn-primary" id="chooseFileBtn">📂 ফাইল বেছে নিন</button>
-        <div id="fileNameLabel" class="small muted" style="margin-top:10px">এখনও কোনো ফাইল দেওয়া হয়নি</div>
-      </div>
-      <div id="uploadMessage" class="notice notice-info hidden" role="status"></div>
-      <div id="sheetPickerWrap" class="field hidden" style="margin-top:15px; max-width:420px">
-        <label for="sheetPicker">কোন শিট থেকে তথ্য নেবেন?</label>
-        <select id="sheetPicker"></select>
-      </div>
-      <div class="notice notice-info">🔒 আপনার ফাইল এই পেজের ব্রাউজারেই পড়া হয়। এই কোডে ফাইল কোনো সার্ভারে আপলোড করা হয় না। Excel লাইব্রেরি লোড করতে ইন্টারনেট সংযোগ প্রয়োজন।</div>
-    </section>
-
-    <section class="card hidden mapping-card" id="mappingCard">
-      <div class="card-head">
-        <div>
-          <h2>ফাইল ও কলাম সেটিংস</h2>
-          <p class="sub">সিস্টেম নিজে থেকে নাম, রোল ও শাখা শনাক্ত করার চেষ্টা করবে। ভুল হলে ড্রপডাউন থেকে ঠিক করে দিন।</p>
-        </div>
-        <span class="tag">সেটিংস</span>
-      </div>
-      <div class="grid">
-        <div class="field"><label for="resultTitle">রেজাল্টের শিরোনাম</label><input id="resultTitle" type="text" value="পরীক্ষার ফলাফল" /></div>
-        <div class="field"><label for="negativeMark">প্রতি ভুল উত্তরে কাটা নম্বর</label><input id="negativeMark" type="number" min="0" step="0.01" value="0" /></div>
-        <div class="field"><label for="nameCol">নামের কলাম</label><select id="nameCol"></select></div>
-        <div class="field"><label for="rollCol">রোলের কলাম</label><select id="rollCol"></select></div>
-        <div class="field"><label for="branchCol">শাখা/বিভাগের কলাম</label><select id="branchCol"></select></div>
-      </div>
-      <div class="notice notice-warn">প্রতিটি MCQ প্রশ্নের সঠিক উত্তর নিচে লিখুন। শিক্ষার্থীর উত্তর ও সঠিক উত্তরের লেখা মিলিয়ে নম্বর গণনা হবে। বড়-ছোট হাতের অক্ষর ও বাড়তি ফাঁকা জায়গা উপেক্ষা করা হবে। একাধিক গ্রহণযোগ্য উত্তর দিতে চাইলে `|` চিহ্ন দিয়ে আলাদা করুন।</div>
-      <hr class="divider" />
-      <div class="card-head" style="margin-bottom:10px">
-        <div>
-          <h2>MCQ প্রশ্ন ও সঠিক উত্তর</h2>
-          <p class="sub">যে কলামগুলো MCQ প্রশ্ন নয়, সেগুলোর পাশে টিক তুলে দিন। নম্বর গণনায় শুধু টিক দেওয়া ও সঠিক উত্তর পূরণ করা প্রশ্ন থাকবে।</p>
-        </div>
-      </div>
-      <div id="questionsEmpty" class="empty">ফাইলে প্রশ্নের কলাম পাওয়া যায়নি। নাম/রোল/শাখার কলাম ঠিক আছে কি না দেখুন।</div>
-      <div id="questionTableWrap" class="question-wrap hidden">
-        <table class="question-table">
-          <thead><tr><th>ধরুন</th><th>প্রশ্নের কলাম</th><th>সঠিক উত্তর (Answer key)</th><th>পূর্ণ নম্বর</th></tr></thead>
-          <tbody id="questionTableBody"></tbody>
-        </table>
-      </div>
-      <div class="row" style="justify-content:space-between; margin-top:15px">
-        <label class="check-inline"><input id="includeWrittenOnly" type="checkbox" /> <span>MCQ উত্তর দেয়নি, কিন্তু লিখিত নম্বর আছে—এমন শিক্ষার্থীকেও রেজাল্টে রাখুন</span></label>
-        <button type="button" class="btn btn-primary" id="updateResultsBtn">রেজাল্ট তৈরি / আপডেট করুন</button>
-      </div>
-    </section>
-
-    <section class="card hidden written-card" id="writtenCard">
-      <div class="card-head">
-        <div>
-          <h2>লিখিত অংশের নম্বর বসান</h2>
-          <p class="sub">Excel থেকে রোল ও লিখিত নম্বর—এই দুই কলাম কপি করে পেস্ট করলে একসঙ্গে বসে যাবে। প্রতি লাইনে আগে রোল, তারপর ট্যাব, তারপর নম্বর দিন।</p>
-        </div>
-        <span class="tag">ধাপ ২</span>
-      </div>
-      <div class="field">
-        <label for="bulkWritten">একসঙ্গে অনেক শিক্ষার্থীর নম্বর</label>
-        <textarea id="bulkWritten" placeholder="উদাহরণ (প্রতি লাইনে একটি):&#10;6012522&#9;18&#10;6012523&#9;20&#10;6012524&#9;16"></textarea>
-        <div class="row" style="margin-top:8px">
-          <button type="button" class="btn btn-primary" id="applyBulkBtn">সবগুলো বসান</button>
-          <button type="button" class="btn btn-outline" id="clearBulkTextBtn">পেস্ট বক্স খালি করুন</button>
-          <button type="button" class="btn btn-danger" id="clearWrittenBtn">সব লিখিত নম্বর মুছুন</button>
-        </div>
-      </div>
-      <hr class="divider" />
-      <h3>একজন করে নম্বর বসান</h3>
-      <div class="grid">
-        <div class="field"><label for="singleRoll">রোল</label><input id="singleRoll" type="text" placeholder="যেমন: 6012522" /><div id="studentNameHint" class="small muted">রোল লিখলে শিক্ষার্থীর নাম এখানে দেখাবে</div></div>
-        <div class="field"><label for="singleWritten">লিখিত নম্বর</label><input id="singleWritten" type="number" min="0" step="0.01" placeholder="যেমন: 18" /></div>
-        <div class="field" style="justify-content:end"><button type="button" class="btn btn-primary" id="applySingleBtn">নম্বর বসান</button></div>
-      </div>
-      <div id="writtenMessage" class="notice hidden" role="status"></div>
-    </section>
-
-      </aside>
-      <div class="main-content">
-    <section class="card results-card" id="resultsCard">
-      <div class="card-head">
-        <div>
-          <h2 id="resultsHeading">রেজাল্ট</h2>
-          <p class="sub">মোট নম্বর অনুযায়ী বেশি থেকে কম সাজানো হয়েছে। লিখিত নম্বর খালি থাকলে পরে যোগ করতে পারবেন।</p>
-        </div>
-        <span class="tag">ধাপ ৩</span>
-      </div>
-      <div class="stat-grid">
-        <div class="stat"><div class="label">রেজাল্টে আছে</div><div class="value" id="statCount">০</div></div>
-        <div class="stat"><div class="label">সর্বোচ্চ মোট</div><div class="value" id="statHighest">০</div></div>
-        <div class="stat"><div class="label">গড় মোট</div><div class="value" id="statAverage">০</div></div>
-        <div class="stat"><div class="label">লিখিত নম্বর বাকি</div><div class="value" id="statPending">০</div></div>
-      </div>
-      <div class="toolbar" style="margin-bottom:13px">
-        <input class="search" id="searchInput" type="text" placeholder="নাম বা রোল খুঁজুন..." aria-label="নাম বা রোল খুঁজুন" />
-        <select id="filterSelect" aria-label="রেজাল্ট ফিল্টার">
-          <option value="all">সব শিক্ষার্থী</option>
-          <option value="pending">লিখিত নম্বর বাকি</option>
-          <option value="issues">তথ্য/নম্বরের সমস্যা</option>
-        </select>
-        <button type="button" class="btn btn-outline" id="downloadXlsxBtn">⬇ Excel ডাউনলোড</button>
-        <button type="button" class="btn btn-outline" id="downloadCsvBtn">⬇ ওয়েবসাইটের CSV</button>
-      </div>
-      <div id="resultsMessage" class="notice notice-info hidden"></div>
-      <div class="question-wrap">
-        <table class="results-table">
-          <thead><tr>
-            <th class="num">Position</th><th>Student Name</th><th>Roll</th><th>Branch</th>
-            <th class="num">সঠিক</th><th class="num">ভুল</th><th class="num">Negative</th>
-            <th class="num">MCQ</th><th class="num">Written</th><th class="num">Total</th><th>অবস্থা</th>
-          </tr></thead>
-          <tbody id="resultsTableBody"><tr><td colspan="11" class="empty">প্রথমে একটি Excel ফাইল দিন।</td></tr></tbody>
-        </table>
-      </div>
-      <p class="small muted" style="margin-bottom:0">দ্রষ্টব্য: MCQ নম্বর = সঠিক উত্তরের নম্বর − ভুল উত্তরের জরিমানা; MCQ নম্বর ০-এর নিচে যাবে না। যেসব প্রশ্নের Answer key খালি, সেগুলো নম্বর গণনায় ধরা হবে না।</p>
-    </section>
-      </div>
+    <div class="twocol" style="margin-top:9px">
+      <div class="field"><label for="branchCol">শাখা / বিভাগ (ঐচ্ছিক)</label><select id="branchCol" disabled><option>ফাইল দিন</option></select></div>
+      <div class="field"><label for="mcqScoreCol">Google Form Score কলাম (ঐচ্ছিক)</label><select id="mcqScoreCol" disabled><option>ফাইল দিন</option></select></div>
     </div>
-  </main>
+    <div class="notice info">ফাইলে Google Form-এর <b>Score</b> কলাম থাকলে সেটি থেকে MCQ নম্বর নেওয়া হবে। Score কলাম না থাকলে নিচে প্রতিটি প্রশ্নের সঠিক উত্তর দিন। ফাইল আপনার ব্রাউজারেই পড়া হয়—কোনো সার্ভারে পাঠানো হয় না।</div>
+  </section>
+  <section class="card hidden" id="writtenCard">
+    <div class="cardhead"><div><h2>② লিখিত অংশের নম্বর</h2><p>Excel থেকে রোল ও লিখিত নম্বরের দুই কলাম কপি করে নিচে পেস্ট করুন।</p></div><span class="tag">ধাপ ৩</span></div>
+    <div class="field"><label for="bulkWritten">অনেক শিক্ষার্থীর নম্বর একসঙ্গে</label><textarea id="bulkWritten" placeholder="প্রতি লাইনে রোল [Tab] লিখিত নম্বর&#10;6012522&#9;18&#10;6012523&#9;20&#10;6012524&#9;16"></textarea></div>
+    <div class="row" style="margin-top:8px"><button type="button" class="btn green" id="applyBulkBtn">সব নম্বর যোগ করুন</button><button type="button" class="btn outline" id="clearBulkTextBtn">বক্স খালি</button></div>
+    <div id="writtenMessage" class="notice hidden" role="status"></div>
+    <hr class="divider">
+    <h3 style="font-size:.86rem;margin:0 0 8px">একজনের নম্বর</h3>
+    <div class="twocol"><div class="field"><label for="singleRoll">রোল</label><input id="singleRoll" type="text" placeholder="রোল নম্বর"><div id="studentNameHint" class="tiny muted">রোল লিখলে নাম দেখাবে</div></div><div class="field"><label for="singleWritten">লিখিত নম্বর</label><input id="singleWritten" type="number" min="0" step="0.01" placeholder="নম্বর"></div></div>
+    <button type="button" class="btn green wide" id="applySingleBtn" style="margin-top:8px">এই নম্বর যোগ করুন</button>
+    <div class="divider"></div>
+    <label class="check"><input type="checkbox" id="includeUnmatchedWritten"><span>রেসপন্স শিটে নেই এমন রোলও রেজাল্টে রাখুন (যাচাই করে)</span></label>
+    <div class="row between" style="margin-top:9px"><span class="tiny muted">ভুল রোল হলে এই অপশন বন্ধ রাখুন।</span><button type="button" class="btn danger" id="clearWrittenBtn">সব লিখিত নম্বর মুছুন</button></div>
+  </section>
+</aside>
+<div class="maincol">
+  <section class="card hidden" id="questionCard">
+    <div class="cardhead"><div><h2>③ MCQ সঠিক উত্তর দিন</h2><p>Google Form-এ যেই অপশন জমা হয়েছে, সঠিক উত্তরেও সেই একই লেখা দিন। একাধিক গ্রহণযোগ্য উত্তর হলে | দিয়ে আলাদা করুন।</p></div><span class="tag">ধাপ ২</span></div>
+    <div class="row between" style="margin-bottom:8px"><div class="tiny muted" id="questionCount">প্রশ্ন পাওয়া যায়নি</div><button type="button" class="btn outline" id="resetKeysBtn">উত্তর খালি করুন</button></div>
+    <div class="tablewrap"><table class="qtable"><thead><tr><th>ধরুন</th><th>Google Form প্রশ্নের নাম</th><th>সঠিক উত্তর</th><th>পূর্ণ নম্বর</th></tr></thead><tbody id="questionTableBody"><tr><td colspan="4" class="empty">প্রথমে Responses ফাইল দিন।</td></tr></tbody></table></div>
+    <p class="help">উদাহরণ: রেসপন্সে যদি “Dhaka” থাকে, সঠিক উত্তরেও “Dhaka” লিখুন। “A|Option A” দিলে A অথবা Option A—দুটিই গ্রহণ করবে। খালি Answer Key-র প্রশ্ন আপাতত নম্বর গণনায় ধরা হবে না।</p>
+  </section>
+  <section class="card" id="resultsCard">
+    <div class="cardhead"><div><h2 id="resultsHeading">রেজাল্ট শিট</h2><p>প্রতিটি রেসপন্স একটি সারি। MCQ উত্তর ও লিখিত নম্বর যোগ হলেই মোট নম্বর/মেধাক্রম আপডেট হবে।</p></div><span class="tag">ফলাফল</span></div>
+    <div class="stats"><div class="stat"><div class="label">রেজাল্টে আছে</div><div class="value" id="statCount">০</div></div><div class="stat"><div class="label">সর্বোচ্চ মোট</div><div class="value" id="statHighest">০</div></div><div class="stat"><div class="label">গড় মোট</div><div class="value" id="statAverage">০</div></div><div class="stat"><div class="label">লিখিত নম্বর বাকি</div><div class="value" id="statPending">০</div></div></div>
+    <div class="toolbar"><input class="search" id="searchInput" type="text" placeholder="নাম, রোল বা শাখা খুঁজুন…"><select id="filterSelect"><option value="all">সব শিক্ষার্থী</option><option value="pending">লিখিত নম্বর বাকি</option><option value="issues">নাম/রোল যাচাই</option><option value="key">MCQ Key বাকি</option></select><button type="button" class="btn green" id="downloadXlsxBtn">⬇ Excel ডাউনলোড</button><button type="button" class="btn outline" id="downloadCsvBtn">⬇ CSV ডাউনলোড</button></div>
+    <div id="resultsMessage" class="notice info hidden" role="status"></div>
+    <div class="tablewrap"><table class="results-table"><thead><tr><th class="numeric">মেধাক্রম</th><th>শিক্ষার্থীর নাম</th><th>রোল</th><th>শাখা</th><th class="numeric">উত্তর</th><th class="numeric">সঠিক</th><th class="numeric">ভুল</th><th class="numeric">কর্তন</th><th class="numeric">MCQ</th><th class="numeric">লিখিত</th><th class="numeric">মোট</th><th>অবস্থা</th></tr></thead><tbody id="resultsTableBody"><tr><td colspan="12" class="empty">প্রথমে Google Form-এর Responses ফাইল আপলোড করুন।</td></tr></tbody></table></div>
+    <p class="statnote">মোট নম্বর = MCQ নম্বর + লিখিত নম্বর। লিখিত নম্বর না দিলে আপাতত মোটে শুধু MCQ যোগ হবে। Answer Key অসম্পূর্ণ থাকলে MCQ/মেধাক্রম অস্থায়ী থাকবে।</p>
+  </section>
+  <section class="card"><details><summary>ব্যবহারের নিয়ম / সমস্যা হলে কী করবেন?</summary><div class="details-body tiny muted"><p><b>১.</b> Google Forms → Responses → Google Sheets খুলে File → Download → Microsoft Excel (.xlsx) করুন। চাইলে CSV-ও ব্যবহার করতে পারবেন।</p><p><b>২.</b> ফাইল আপলোডের পর নাম, রোল ও শাখার কলাম মিলিয়ে নিন। অটো শনাক্ত না হলে ড্রপডাউন থেকে ঠিক করুন।</p><p><b>৩.</b> Responses ফাইলে Score কলাম থাকলে তা MCQ নম্বর হিসেবে স্বয়ংক্রিয়ভাবে নেওয়া হবে। Score কলাম না থাকলে প্রতিটি MCQ প্রশ্নের সঠিক উত্তর ও পূর্ণ নম্বর দিন। ভুল উত্তরের কাটতি সেটিংস থেকে বদলাতে পারবেন।</p><p><b>৪.</b> রোল ও লিখিত নম্বরের দুই কলাম একসঙ্গে কপি করে পেস্ট করুন। তারপর “সব নম্বর যোগ করুন” চাপুন।</p><p><b>৫.</b> “Excel ডাউনলোড” চাপলে Result, বিস্তারিত হিসাব এবং MCQ Answer Key—তিনটি শিটসহ .xlsx ফাইল হবে।</p><p><b>গুরুত্বপূর্ণ:</b> একই রোল একাধিকবার ফর্ম জমা দিলে প্রতিটি জমাকে আলাদা সারি হিসেবে দেখাবে, এবং সেই রোলে দেওয়া লিখিত নম্বর প্রতিটি জমার সঙ্গে যুক্ত হবে।</p></div></details></section>
+</div></div></main>
+<footer class="footer"><div class="footer-inner">রেজাল্ট শিট মেকার · আপনার ফাইল এই ব্রাউজারেই প্রসেস হয়</div></footer>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const XML_NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+const REL_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const encoder = new TextEncoder();
+let workbookSheets = [];
+let activeSheetName = '';
+let headers = [];
+let dataRows = [];
+let questionDefs = [];
+let writtenByRoll = new Map();
+let sourceFileName = '';
+let results = [];
+let detectedNameIndex = -1, detectedRollIndex = -1, detectedBranchIndex = -1, detectedScoreIndex = -1;
 
-  <footer class="footer"><div class="footer-inner">রেজাল্ট শিট মেকার · আপনার ডেটা আপনার ব্রাউজারেই থাকে</div></footer>
+function message(el, text, type='info') { el.className = `notice ${type}`; el.textContent = text; el.classList.remove('hidden'); }
+function hideMessage(el) { el.classList.add('hidden'); }
+function asText(v) { return v === null || v === undefined ? '' : String(v).trim(); }
+function westernDigits(value) { return String(value ?? '').replace(/[০-৯]/g,d=>String('০১২৩৪৫৬৭৮৯'.indexOf(d))).replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))); }
+function normalize(value) { return westernDigits(String(value ?? '').normalize('NFKC')).trim().toLocaleLowerCase().replace(/\u00a0/g,' ').replace(/\s+/g,' '); }
+function rollKey(value) { return normalize(value).replace(/[\s\u200b-]+/g,''); }
+function num(value) { const s=westernDigits(asText(value)).replace(/,/g,''); if(!s) return null; const n=Number(s); return Number.isFinite(n)?n:null; }
+function fmt(value) { const n=Number(value); return Number.isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:2}):'0'; }
+function bn(value) { const n=Number(value); return Number.isFinite(n)?n.toLocaleString('bn-BD',{maximumFractionDigits:2}):'০'; }
+function escapeXml(value) { return String(value??'').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
+function showFileStatus(text,type='info') { message($('uploadMessage'),text,type); }
 
-  <!-- SheetJS is used to read and create Excel files. -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script>
-  (() => {
-    'use strict';
-    const $ = (id) => document.getElementById(id);
-    let workbook = null;
-    let activeSheetName = '';
-    let headers = [];
-    let dataRows = [];
-    let questionDefs = [];
-    let writtenByRoll = new Map();
-    let clearAllWritten = false;
-    let results = [];
-    let sourceFileName = '';
-    let detectedWrittenIndex = -1;
-
-    const META_PATTERNS = [
-      /timestamp/i, /সময়.?চিহ্ন/, /email/i, /ইমেইল/, /e-mail/i,
-      /^(name|student name|নাম|শিক্ষার্থীর নাম|ছাত্র.?ছাত্রীর নাম)$/i,
-      /^(roll|roll no\.?|roll number|রোল|রোল নম্বর|শিক্ষার্থী আইডি|student id)$/i,
-      /^(branch|শাখা|বিভাগ|department|group|section|ব্যাচ)$/i,
-      /^(score|total score|marks?|মোট নম্বর|প্রাপ্ত নম্বর|লিখিত|লিখিত নম্বর|written|written marks|position|rank|ক্রম|সিরিয়াল|serial|sl)$/i,
-      /phone|mobile|মোবাইল|ফোন নম্বর|ঠিকানা|address/i
-    ];
-
-    function showMessage(el, msg, type='info') {
-      el.className = `notice notice-${type}`;
-      el.textContent = msg;
-      el.classList.remove('hidden');
-    }
-    function hideMessage(el) { el.classList.add('hidden'); }
-    function norm(value) {
-      return String(value ?? '').normalize('NFKC').trim().toLocaleLowerCase().replace(/\s+/g, ' ');
-    }
-    function cleanText(value) { return String(value ?? '').trim(); }
-    function numberValue(value) {
-      if (value === null || value === undefined || cleanText(value) === '') return null;
-      const n = Number(String(value).replace(/,/g, '').trim());
-      return Number.isFinite(n) ? n : null;
-    }
-    function prettyNum(value) {
-      if (!Number.isFinite(Number(value))) return '০';
-      return Number(value).toLocaleString('bn-BD', { maximumFractionDigits: 2 });
-    }
-    function isMetaHeader(header) {
-      const h = cleanText(header);
-      return !h || META_PATTERNS.some(re => re.test(h));
-    }
-    function findHeaderIndex(patterns) {
-      for (const pattern of patterns) {
-        const idx = headers.findIndex(h => pattern.test(cleanText(h)));
-        if (idx >= 0) return idx;
-      }
-      return -1;
-    }
-    function detectColumnIndices() {
-      const nameIdx = findHeaderIndex([/^(student name|name|শিক্ষার্থীর নাম|ছাত্র.?ছাত্রীর নাম|নাম)$/i, /name|নাম/i]);
-      const rollIdx = findHeaderIndex([/^(roll|roll no\.?|roll number|রোল|রোল নম্বর|student id|শিক্ষার্থী আইডি)$/i, /roll|রোল/i]);
-      const branchIdx = findHeaderIndex([/^(branch|শাখা|বিভাগ|department|group|section|ব্যাচ)$/i, /branch|শাখা|বিভাগ|department|section/i]);
-      detectedWrittenIndex = findHeaderIndex([/^(written|written marks|written mark|লিখিত|লিখিত নম্বর|লিখিত অংশ)$/i]);
-      return { nameIdx, rollIdx, branchIdx };
-    }
-    function renderColumnSelect(select, selectedIdx, allowNone=false) {
-      select.innerHTML = '';
-      if (allowNone) {
-        const none = document.createElement('option'); none.value = '-1'; none.textContent = '— নেই / নির্বাচন করুন —'; select.appendChild(none);
-      }
-      headers.forEach((header, idx) => {
-        const option = document.createElement('option'); option.value = String(idx);
-        option.textContent = `${idx + 1}. ${cleanText(header) || `কলাম ${idx + 1}`}`;
-        select.appendChild(option);
-      });
-      select.value = String(selectedIdx >= 0 ? selectedIdx : (allowNone ? -1 : 0));
-    }
-    function selectedIndex(selectId) {
-      const value = Number($(selectId).value);
-      return Number.isInteger(value) ? value : -1;
-    }
-    function columnSelectChanged() {
-      buildQuestionDefs();
-      renderQuestionTable();
-      calculateResults();
-    }
-    function buildQuestionDefs() {
-      const used = new Set([selectedIndex('nameCol'), selectedIndex('rollCol'), selectedIndex('branchCol')]);
-      questionDefs = [];
-      headers.forEach((header, idx) => {
-        if (used.has(idx) || idx === detectedWrittenIndex || isMetaHeader(header)) return;
-        questionDefs.push({ index: idx, title: cleanText(header) || `প্রশ্ন ${idx + 1}`, answer: '', points: 1, enabled: true });
-      });
-    }
-    function renderQuestionTable() {
-      const tbody = $('questionTableBody'); tbody.innerHTML = '';
-      $('questionsEmpty').classList.toggle('hidden', questionDefs.length > 0);
-      $('questionTableWrap').classList.toggle('hidden', questionDefs.length === 0);
-      questionDefs.forEach((q, i) => {
-        const tr = document.createElement('tr');
-        const enabledTd = document.createElement('td');
-        const enabled = document.createElement('input'); enabled.type = 'checkbox'; enabled.checked = q.enabled; enabled.setAttribute('aria-label', `${q.title} নম্বর গণনায় ধরুন`);
-        enabled.addEventListener('change', () => { q.enabled = enabled.checked; calculateResults(); });
-        enabledTd.appendChild(enabled);
-        const nameTd = document.createElement('td'); nameTd.className = 'question-name'; nameTd.textContent = q.title;
-        const answerTd = document.createElement('td');
-        const answer = document.createElement('input'); answer.type = 'text'; answer.placeholder = 'সঠিক উত্তর লিখুন'; answer.value = q.answer; answer.setAttribute('aria-label', `${q.title} সঠিক উত্তর`);
-        answer.addEventListener('input', () => { q.answer = answer.value; calculateResults(); }); answerTd.appendChild(answer);
-        const pointsTd = document.createElement('td');
-        const points = document.createElement('input'); points.type = 'number'; points.min = '0'; points.step = '0.01'; points.value = String(q.points); points.setAttribute('aria-label', `${q.title} পূর্ণ নম্বর`);
-        points.addEventListener('input', () => { const n = numberValue(points.value); q.points = n === null || n < 0 ? 0 : n; calculateResults(); }); pointsTd.appendChild(points);
-        tr.append(enabledTd, nameTd, answerTd, pointsTd); tbody.appendChild(tr);
-      });
-    }
-    function guessName(header) { return /name|নাম/i.test(cleanText(header)); }
-    function loadSheet(sheetName) {
-      if (!workbook || !sheetName) return;
-      activeSheetName = sheetName;
-      const ws = workbook.Sheets[sheetName];
-      const matrix = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false, blankrows: false });
-      if (!matrix.length || !matrix[0].length) {
-        showMessage($('uploadMessage'), 'এই শিটে কোনো তথ্য পাওয়া যায়নি। অন্য শিট বেছে নিন।', 'warn');
-        return;
-      }
-      headers = matrix[0].map((h, i) => cleanText(h) || `কলাম ${i + 1}`);
-      dataRows = matrix.slice(1).filter(row => row.some(cell => cleanText(cell) !== '')).map(row => {
-        const filled = row.slice(); while (filled.length < headers.length) filled.push(''); return filled;
-      });
-      if (!dataRows.length) {
-        showMessage($('uploadMessage'), 'শিরোনাম পাওয়া গেছে, কিন্তু এর নিচে শিক্ষার্থীর কোনো তথ্য নেই।', 'warn');
-      } else {
-        showMessage($('uploadMessage'), `${dataRows.length}টি তথ্যের সারি পাওয়া গেছে। নাম, রোল ও MCQ কলামগুলো যাচাই করে নিন।`, 'success');
-      }
-      const detected = detectColumnIndices();
-      renderColumnSelect($('nameCol'), detected.nameIdx, true);
-      renderColumnSelect($('rollCol'), detected.rollIdx, true);
-      renderColumnSelect($('branchCol'), detected.branchIdx, true);
-      // Keep the written-mark source column out of detected MCQ questions.
-      buildQuestionDefs();
-      renderQuestionTable();
-      $('mappingCard').classList.remove('hidden');
-      $('writtenCard').classList.remove('hidden');
-      $('resultsCard').classList.remove('hidden');
-      $('resultsHeading').textContent = cleanText($('resultTitle').value) || 'রেজাল্ট';
-      calculateResults();
-      $('mappingCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    function loadFile(file) {
-      if (!file) return;
-      const allowed = /\.(xlsx|xls|csv)$/i.test(file.name);
-      if (!allowed) { showMessage($('uploadMessage'), 'দয়া করে .xlsx, .xls অথবা .csv ফাইল দিন।', 'warn'); return; }
-      if (typeof XLSX === 'undefined') { showMessage($('uploadMessage'), 'Excel পড়ার লাইব্রেরি লোড হয়নি। ইন্টারনেট চালু করে পেজটি রিফ্রেশ করুন।', 'warn'); return; }
-      sourceFileName = file.name;
-      $('fileNameLabel').textContent = file.name;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const bytes = new Uint8Array(event.target.result);
-          workbook = XLSX.read(bytes, { type: 'array' });
-          if (!workbook.SheetNames.length) throw new Error('ফাইলে কোনো শিট নেই।');
-          $('sheetPicker').innerHTML = '';
-          workbook.SheetNames.forEach(name => { const opt = document.createElement('option'); opt.value = name; opt.textContent = name; $('sheetPicker').appendChild(opt); });
-          $('sheetPickerWrap').classList.toggle('hidden', workbook.SheetNames.length < 2);
-          $('sheetPicker').value = workbook.SheetNames[0];
-          writtenByRoll = new Map(); clearAllWritten = false;
-          loadSheet(workbook.SheetNames[0]);
-        } catch (error) {
-          console.error(error);
-          showMessage($('uploadMessage'), 'ফাইলটি পড়া যায়নি। Google Form থেকে নতুন করে .xlsx ফাইল ডাউনলোড করে চেষ্টা করুন।', 'warn');
-        }
-      };
-      reader.onerror = () => showMessage($('uploadMessage'), 'ফাইল পড়তে সমস্যা হয়েছে। আবার চেষ্টা করুন।', 'warn');
-      reader.readAsArrayBuffer(file);
-    }
-    function getRoll(row) { const idx = selectedIndex('rollCol'); return idx >= 0 ? cleanText(row[idx]) : ''; }
-    function getName(row) { const idx = selectedIndex('nameCol'); return idx >= 0 ? cleanText(row[idx]) : ''; }
-    function getBranch(row) { const idx = selectedIndex('branchCol'); return idx >= 0 ? cleanText(row[idx]) : ''; }
-    function writtenForRow(row) {
-      const roll = getRoll(row), key = norm(roll);
-      if (key && writtenByRoll.has(key)) return writtenByRoll.get(key);
-      if (clearAllWritten) return null;
-      if (detectedWrittenIndex >= 0) return numberValue(row[detectedWrittenIndex]);
-      return null;
-    }
-    function rowHasWritten(row) { return writtenForRow(row) !== null; }
-    function answerMatches(response, answerKey) {
-      const answer = norm(response);
-      if (!answer) return false;
-      return String(answerKey).split('|').map(norm).filter(Boolean).includes(answer);
-    }
-    function calculateResults() {
-      if (!dataRows.length || selectedIndex('nameCol') < 0 && selectedIndex('rollCol') < 0) {
-        results = []; renderResults(); return;
-      }
-      const negative = Math.max(0, numberValue($('negativeMark').value) ?? 0);
-      const activeQuestions = questionDefs.filter(q => q.enabled && norm(q.answer) !== '' && q.points >= 0);
-      const includeWrittenOnly = $('includeWrittenOnly').checked;
-      const staged = [];
-      dataRows.forEach((row, sourceIndex) => {
-        const name = getName(row), roll = getRoll(row), branch = getBranch(row);
-        const activeAnswerValues = activeQuestions.map(q => cleanText(row[q.index]));
-        const answered = activeAnswerValues.filter(v => v !== '').length;
-        const hasWritten = rowHasWritten(row);
-        if (answered === 0 && !(includeWrittenOnly && hasWritten)) return;
-        let correct = 0, wrong = 0, correctMarks = 0;
-        activeQuestions.forEach(q => {
-          const response = cleanText(row[q.index]);
-          if (!response) return;
-          if (answerMatches(response, q.answer)) { correct++; correctMarks += q.points; }
-          else wrong++;
-        });
-        const penalty = wrong * negative;
-        const mcq = Math.max(0, correctMarks - penalty);
-        const written = writtenForRow(row);
-        const total = mcq + (written === null ? 0 : written);
-        const missingIdentity = !name || !roll;
-        staged.push({
-          sourceIndex, name, roll, branch, correct, wrong,
-          negative: penalty, mcq, written, total,
-          answered, missingIdentity, sourceRow: row
-        });
-      });
-      staged.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'bn') || a.sourceIndex - b.sourceIndex);
-      let lastTotal = null, lastRank = 0;
-      staged.forEach((student, i) => {
-        if (lastTotal === null || student.total !== lastTotal) lastRank = i + 1;
-        student.rank = lastRank; lastTotal = student.total;
-      });
-      results = staged;
-      renderResults();
-    }
-    function statusFor(student) {
-      if (student.missingIdentity) return { label: 'তথ্য যাচাই', cls: 'pill-error' };
-      if (student.written === null) return { label: 'লিখিত বাকি', cls: 'pill-pending' };
-      return { label: 'সম্পন্ন', cls: 'pill-good' };
-    }
-    function renderResults() {
-      $('resultsHeading').textContent = cleanText($('resultTitle').value) || 'রেজাল্ট';
-      $('statCount').textContent = prettyNum(results.length);
-      $('statHighest').textContent = prettyNum(results.length ? Math.max(...results.map(r => r.total)) : 0);
-      $('statAverage').textContent = prettyNum(results.length ? results.reduce((sum, r) => sum + r.total, 0) / results.length : 0);
-      $('statPending').textContent = prettyNum(results.filter(r => r.written === null).length);
-      const search = norm($('searchInput').value), filter = $('filterSelect').value;
-      const filtered = results.filter(r => {
-        const matchesSearch = !search || norm(r.name).includes(search) || norm(r.roll).includes(search) || norm(r.branch).includes(search);
-        const matchesFilter = filter === 'all' || (filter === 'pending' && r.written === null) || (filter === 'issues' && r.missingIdentity);
-        return matchesSearch && matchesFilter;
-      });
-      const tbody = $('resultsTableBody'); tbody.innerHTML = '';
-      if (!filtered.length) {
-        const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 11; td.className = 'empty'; td.textContent = results.length ? 'এই খোঁজ বা ফিল্টারে কোনো শিক্ষার্থী পাওয়া যায়নি।' : 'এখনও কোনো রেজাল্ট নেই। ফাইল দিন এবং MCQ-এর সঠিক উত্তর বসান।'; tr.appendChild(td); tbody.appendChild(tr);
-      } else {
-        filtered.forEach(s => {
-          const tr = document.createElement('tr');
-          const cells = [
-            { text: s.rank, cls: 'num' }, { text: s.name || '—' }, { text: s.roll || '—' }, { text: s.branch || '—' },
-            { text: s.correct, cls: 'num' }, { text: s.wrong, cls: 'num' }, { text: prettyNum(s.negative), cls: 'num' },
-            { text: prettyNum(s.mcq), cls: 'num' }, { text: s.written === null ? '—' : prettyNum(s.written), cls: 'num' }, { text: prettyNum(s.total), cls: 'num' }
-          ];
-          cells.forEach(cell => { const td = document.createElement('td'); td.textContent = String(cell.text); if (cell.cls) td.className = cell.cls; tr.appendChild(td); });
-          const statusTd = document.createElement('td'); const pill = document.createElement('span'); const status = statusFor(s); pill.className = `status-pill ${status.cls}`; pill.textContent = status.label; statusTd.appendChild(pill); tr.appendChild(statusTd);
-          tbody.appendChild(tr);
-        });
-      }
-      const noKeyCount = questionDefs.filter(q => q.enabled && norm(q.answer) === '').length;
-      if (noKeyCount > 0) {
-        showMessage($('resultsMessage'), `${noKeyCount}টি প্রশ্নের সঠিক উত্তর এখনো দেওয়া হয়নি। ওই প্রশ্নগুলো নম্বর গণনায় ধরা হচ্ছে না।`, 'warn');
-      } else if (results.length > 0) {
-        showMessage($('resultsMessage'), `${results.length} জনের রেজাল্ট তৈরি হয়েছে। লিখিত নম্বর পরিবর্তন করলে ফলাফল স্বয়ংক্রিয়ভাবে আপডেট হবে।`, 'success');
-      } else hideMessage($('resultsMessage'));
-    }
-    function showWrittenMessage(message, type='success') { showMessage($('writtenMessage'), message, type); }
-    function findStudentByRoll(roll) {
-      const key = norm(roll);
-      if (!key) return null;
-      const row = dataRows.find(r => norm(getRoll(r)) === key);
-      return row || null;
-    }
-    function setWritten(roll, mark) {
-      const key = norm(roll);
-      if (!key) return false;
-      writtenByRoll.set(key, mark);
-      return true;
-    }
-    function applyBulkWritten() {
-      const text = $('bulkWritten').value.trim();
-      if (!text) { showWrittenMessage('প্রথমে রোল ও নম্বর পেস্ট করুন।', 'warn'); return; }
-      const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-      let applied = 0, skipped = 0;
-      lines.forEach(line => {
-        let parts = line.split('\t');
-        if (parts.length < 2) parts = line.split(/\s{2,}|[,;]/);
-        if (parts.length < 2 || /^(roll|রোল|student id)/i.test(norm(parts[0]))) { skipped++; return; }
-        const roll = cleanText(parts[0]);
-        const markText = cleanText(parts.slice(1).join(' '));
-        const mark = numberValue(markText);
-        if (!roll || mark === null || mark < 0) { skipped++; return; }
-        setWritten(roll, mark); applied++;
-      });
-      calculateResults();
-      showWrittenMessage(`${applied} জনের লিখিত নম্বর বসানো হয়েছে${skipped ? `; ${skipped}টি লাইন পড়া যায়নি বা বাদ গেছে` : ''}।`, applied ? 'success' : 'warn');
-    }
-    function applySingleWritten() {
-      const roll = $('singleRoll').value.trim();
-      const mark = numberValue($('singleWritten').value);
-      if (!roll || mark === null || mark < 0) { showWrittenMessage('সঠিক রোল ও শূন্য বা তার বেশি লিখিত নম্বর দিন।', 'warn'); return; }
-      setWritten(roll, mark);
-      calculateResults();
-      const row = findStudentByRoll(roll);
-      showWrittenMessage(`${row ? (getName(row) || roll) : `রোল ${roll}`}–এর লিখিত নম্বর ${prettyNum(mark)} বসানো হয়েছে।`, 'success');
-    }
-    function clearWrittenMarks() {
-      if (!confirm('সব লিখিত নম্বর মুছে ফেলবেন? এই কাজটি এই পেজের বর্তমান রেজাল্টে প্রযোজ্য হবে।')) return;
-      writtenByRoll.clear(); clearAllWritten = true; calculateResults();
-      showWrittenMessage('সব লিখিত নম্বর মুছে দেওয়া হয়েছে। নতুন নম্বর আবার বসাতে পারবেন।', 'success');
-    }
-    function outputMatrix() {
-      const title = cleanText($('resultTitle').value) || 'পরীক্ষার ফলাফল';
-      const matrix = [[title], ['Position', 'Student Name', 'Roll', 'Branch', 'Correct', 'Wrong', 'Negative', 'MCQ', 'Written', 'Total']];
-      results.forEach(s => matrix.push([s.rank, s.name, s.roll, s.branch, s.correct, s.wrong, Number(s.negative.toFixed(2)), Number(s.mcq.toFixed(2)), s.written === null ? '' : s.written, Number(s.total.toFixed(2))]));
-      return matrix;
-    }
-    function downloadExcel() {
-      if (!results.length) { showMessage($('resultsMessage'), 'ডাউনলোড করার মতো রেজাল্ট নেই।', 'warn'); return; }
-      const ws = XLSX.utils.aoa_to_sheet(outputMatrix());
-      ws['!cols'] = [{wch:12},{wch:28},{wch:16},{wch:18},{wch:10},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10}];
-      ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 9 } }];
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Result');
-      const detailRows = [['Position','Student Name','Roll','Branch','Answered','Correct','Wrong','Negative','MCQ','Written','Total']];
-      results.forEach(s => detailRows.push([s.rank,s.name,s.roll,s.branch,s.answered,s.correct,s.wrong,Number(s.negative.toFixed(2)),Number(s.mcq.toFixed(2)),s.written === null ? '' : s.written,Number(s.total.toFixed(2))]));
-      const detailWs = XLSX.utils.aoa_to_sheet(detailRows); XLSX.utils.book_append_sheet(wb, detailWs, 'Details');
-      XLSX.writeFile(wb, `${safeFileName(cleanText($('resultTitle').value) || 'result')}.xlsx`);
-    }
-    function downloadCsv() {
-      if (!results.length) { showMessage($('resultsMessage'), 'ডাউনলোড করার মতো রেজাল্ট নেই।', 'warn'); return; }
-      const matrix = [['Position','Student Name','Roll','Branch','Correct','Wrong','Negative','MCQ','Written','Total']];
-      results.forEach(s => matrix.push([s.rank,s.name,s.roll,s.branch,s.correct,s.wrong,Number(s.negative.toFixed(2)),Number(s.mcq.toFixed(2)),s.written === null ? '' : s.written,Number(s.total.toFixed(2))]));
-      const csv = '\ufeff' + matrix.map(row => row.map(csvCell).join(',')).join('\r\n');
-      const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${safeFileName(cleanText($('resultTitle').value) || 'result')}.csv`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
-    }
-    function csvCell(value) { const s = String(value ?? ''); return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
-    function safeFileName(name) { return name.replace(/[\\/:*?"<>|]+/g, '-').trim().replace(/\s+/g, '_').slice(0,80) || 'result'; }
-
-    // Upload interactions
-    $('chooseFileBtn').addEventListener('click', (event) => { event.stopPropagation(); $('fileInput').click(); });
-    $('dropZone').addEventListener('click', (event) => { if (event.target.id !== 'chooseFileBtn') $('fileInput').click(); });
-    $('dropZone').addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); $('fileInput').click(); } });
-    $('fileInput').addEventListener('change', (event) => loadFile(event.target.files[0]));
-    ['dragenter','dragover'].forEach(name => $('dropZone').addEventListener(name, event => { event.preventDefault(); $('dropZone').classList.add('dragover'); }));
-    ['dragleave','drop'].forEach(name => $('dropZone').addEventListener(name, event => { event.preventDefault(); $('dropZone').classList.remove('dragover'); }));
-    $('dropZone').addEventListener('drop', event => { const file = event.dataTransfer.files[0]; if (file) loadFile(file); });
-    $('sheetPicker').addEventListener('change', () => loadSheet($('sheetPicker').value));
-
-    // Mapping and scoring interactions
-    ['nameCol','rollCol','branchCol'].forEach(id => $(id).addEventListener('change', columnSelectChanged));
-    $('negativeMark').addEventListener('input', calculateResults);
-    $('includeWrittenOnly').addEventListener('change', calculateResults);
-    $('updateResultsBtn').addEventListener('click', () => { calculateResults(); $('resultsCard').scrollIntoView({behavior:'smooth', block:'start'}); });
-    $('resultTitle').addEventListener('input', () => { $('resultsHeading').textContent = cleanText($('resultTitle').value) || 'রেজাল্ট'; });
-    $('resultTitle').addEventListener('change', renderResults);
-
-    // Written mark entry
-    $('applyBulkBtn').addEventListener('click', applyBulkWritten);
-    $('clearBulkTextBtn').addEventListener('click', () => { $('bulkWritten').value = ''; });
-    $('clearWrittenBtn').addEventListener('click', clearWrittenMarks);
-    $('applySingleBtn').addEventListener('click', applySingleWritten);
-    $('singleRoll').addEventListener('input', () => {
-      const row = findStudentByRoll($('singleRoll').value);
-      $('studentNameHint').textContent = row ? `শিক্ষার্থীর নাম: ${getName(row) || 'নাম পাওয়া যায়নি'}` : 'রোল লিখলে এখানে ছাত্রের নাম দেখাবে';
+// CSV support: quoted commas, embedded newlines and escaped double-quotes.
+function parseCSV(text) {
+  text=String(text||'').replace(/^\uFEFF/,''); const out=[]; let row=[],field='',quoted=false;
+  for(let i=0;i<text.length;i++) { const c=text[i];
+    if(quoted) { if(c==='"' && text[i+1]==='"'){field+='"';i++;} else if(c==='"') quoted=false; else field+=c; }
+    else if(c==='"' && field==='') quoted=true;
+    else if(c===','){row.push(field);field='';}
+    else if(c==='\n'){row.push(field);out.push(row);row=[];field='';}
+    else if(c==='\r'){ if(text[i+1]==='\n') i++;row.push(field);out.push(row);row=[];field=''; }
+    else field+=c;
+  }
+  if(field!==''||row.length){row.push(field);out.push(row);} return out.filter(r=>r.some(c=>asText(c)!==''));
+}
+function xmlDoc(text) { const doc=new DOMParser().parseFromString(text,'application/xml'); if(doc.querySelector('parsererror')) throw new Error('Excel-এর XML ফাইল পড়া যায়নি।'); return doc; }
+function zipEntries(arrayBuffer) {
+  const bytes=new Uint8Array(arrayBuffer), view=new DataView(arrayBuffer); let eocd=-1;
+  const start=Math.max(0,bytes.length-65557);
+  for(let i=bytes.length-22;i>=start;i--){ if(view.getUint32(i,true)===0x06054b50){eocd=i;break;} }
+  if(eocd<0) throw new Error('এটি সঠিক .xlsx ফাইল নয়। Google Forms থেকে Microsoft Excel (.xlsx) হিসেবে ডাউনলোড করুন।');
+  const count=view.getUint16(eocd+10,true), cdOffset=view.getUint32(eocd+16,true); if(count===0xffff||cdOffset===0xffffffff) throw new Error('এই বড়/Zip64 Excel ফাইলটি সমর্থিত নয়। CSV হিসেবে ডাউনলোড করে চেষ্টা করুন।');
+  const files=new Map(); let p=cdOffset;
+  for(let i=0;i<count;i++){
+    if(view.getUint32(p,true)!==0x02014b50) throw new Error('Excel ZIP directory পড়া যায়নি.');
+    const method=view.getUint16(p+10,true), compSize=view.getUint32(p+20,true), nameLen=view.getUint16(p+28,true), extraLen=view.getUint16(p+30,true), commentLen=view.getUint16(p+32,true), localOffset=view.getUint32(p+42,true);
+    const name=new TextDecoder().decode(bytes.slice(p+46,p+46+nameLen));
+    if(view.getUint32(localOffset,true)!==0x04034b50) throw new Error('Excel sheet data পাওয়া যায়নি.');
+    const ln=view.getUint16(localOffset+26,true), le=view.getUint16(localOffset+28,true), dataOffset=localOffset+30+ln+le;
+    files.set(name,{method,data:bytes.slice(dataOffset,dataOffset+compSize)}); p+=46+nameLen+extraLen+commentLen;
+  }
+  return files;
+}
+async function zipReadText(files,path) { const entry=files.get(path); if(!entry) return null; const bytes=entry.method===0?entry.data:entry.method===8?new Uint8Array(await new Response(new Blob([entry.data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer()):null; if(!bytes) throw new Error('Excel ফাইলের compression method সমর্থিত নয়।'); return new TextDecoder('utf-8').decode(bytes); }
+function colIndex(ref) { const m=String(ref||'').match(/^([A-Z]+)/i); if(!m)return 0; let n=0; for(const c of m[1].toUpperCase())n=n*26+c.charCodeAt(0)-64; return n-1; }
+function normalizeTarget(target) { target=String(target||'').replace(/^\//,''); if(target.startsWith('xl/')) return target; return 'xl/'+target.replace(/^\.\//,''); }
+async function readXlsx(arrayBuffer) {
+  const files=zipEntries(arrayBuffer); const wbText=await zipReadText(files,'xl/workbook.xml'); if(!wbText) throw new Error('Excel workbook.xml পাওয়া যায়নি।');
+  const relText=await zipReadText(files,'xl/_rels/workbook.xml.rels'); if(!relText) throw new Error('Excel workbook relationships পাওয়া যায়নি.');
+  const wbDoc=xmlDoc(wbText), relDoc=xmlDoc(relText), relMap=new Map();
+  Array.from(relDoc.getElementsByTagName('*')).filter(e=>e.localName==='Relationship').forEach(e=>relMap.set(e.getAttribute('Id'),e.getAttribute('Target')));
+  const ssText=await zipReadText(files,'xl/sharedStrings.xml'); let shared=[];
+  if(ssText){ const ssDoc=xmlDoc(ssText); shared=Array.from(ssDoc.getElementsByTagNameNS(XML_NS,'si')).map(si=>Array.from(si.getElementsByTagNameNS(XML_NS,'t')).map(t=>t.textContent||'').join('')); }
+  const sheets=Array.from(wbDoc.getElementsByTagNameNS(XML_NS,'sheet')); const parsed=[];
+  for(const sh of sheets){
+    const rid=sh.getAttributeNS(REL_NS,'id')||sh.getAttribute('r:id')||sh.getAttribute('id'); const target=relMap.get(rid); if(!target)continue;
+    const path=normalizeTarget(target), sheetText=await zipReadText(files,path); if(!sheetText) continue;
+    const sd=xmlDoc(sheetText), rows=[];
+    Array.from(sd.getElementsByTagNameNS(XML_NS,'row')).forEach(rowEl=>{
+      const rnum=Number(rowEl.getAttribute('r'))||rows.length+1; const arr=[];
+      Array.from(rowEl.children).filter(c=>c.localName==='c').forEach(cell=>{
+        const idx=colIndex(cell.getAttribute('r')); const type=cell.getAttribute('t'); let value='';
+        if(type==='inlineStr'){value=Array.from(cell.getElementsByTagNameNS(XML_NS,'t')).map(t=>t.textContent||'').join('');}
+        else {const v=Array.from(cell.children).find(c=>c.localName==='v'); value=v?(v.textContent||''):''; if(type==='s'&&value!=='') value=shared[Number(value)]??''; if(type==='b')value=value==='1'?'TRUE':'FALSE';}
+        arr[idx]=value;
+      }); rows[rnum-1]=arr;
     });
-    $('singleRoll').addEventListener('keydown', event => { if (event.key === 'Enter') $('singleWritten').focus(); });
-    $('singleWritten').addEventListener('keydown', event => { if (event.key === 'Enter') applySingleWritten(); });
-    $('searchInput').addEventListener('input', renderResults);
-    $('filterSelect').addEventListener('change', renderResults);
-    $('downloadXlsxBtn').addEventListener('click', downloadExcel);
-    $('downloadCsvBtn').addEventListener('click', downloadCsv);
+    parsed.push({name:sh.getAttribute('name')||`Sheet ${parsed.length+1}`,matrix:rows});
+  }
+  if(!parsed.length) throw new Error('Excel ফাইলে কোনো worksheet পাওয়া যায়নি।'); return parsed;
+}
 
-    // If the spreadsheet library could not load, tell the user clearly.
-    window.addEventListener('load', () => {
-      if (typeof XLSX === 'undefined') {
-        showMessage($('uploadMessage'), 'Excel লাইব্রেরি লোড হয়নি। ইন্টারনেট সংযোগ চালু করে পেজটি রিফ্রেশ করুন।', 'warn');
-      }
-    });
-  })();
-  </script>
+const metaExact=/^(timestamp|time stamp|email|email address|e-mail|phone|phone number|mobile|mobile number|score|total score|points|name|full name|student name|name of student|your name|roll|roll no\.?|roll number|student roll|student roll no\.?|student id|branch|department|group|section|batch|serial|sl|position|rank|সময়.?চিহ্ন|ইমেইল|নাম|পূর্ণ নাম|শিক্ষার্থীর নাম|ছাত্র.?ছাত্রীর নাম|আপনার নাম|রোল|রোল নং|রোল নম্বর|শিক্ষার্থী আইডি|শাখা|বিভাগ|ব্যাচ|মোট নম্বর|প্রাপ্ত নম্বর|স্কোর|ক্রম|সিরিয়াল)$/i;
+function isMetaHeader(header) {
+  const h=asText(header).toLowerCase().replace(/\s+/g,' ').trim(); if(!h)return true;
+  if(metaExact.test(h))return true;
+  if(/timestamp|time stamp|email address|e-mail|email|phone number|mobile number|মোবাইল নম্বর|ফোন নম্বর|সময়.?চিহ্ন/i.test(h))return true;
+  if(/\b(score|points)\b|স্কোর|মোট নম্বর|প্রাপ্ত নম্বর|এমসিকিউ নম্বর|mcq score/i.test(h))return true;
+  if(/^(your|student|candidate|শিক্ষার্থীর|ছাত্র.?ছাত্রীর|আপনার).*(name|নাম|roll|রোল|id|আইডি)/i.test(h))return true;
+  if(/\b(roll|student id)\b|রোল|শিক্ষার্থী আইডি/i.test(h))return true;
+  return false;
+}
+function detectColumns(){
+  const find=patterns=>{for(const p of patterns){const ix=headers.findIndex(h=>p.test(asText(h)));if(ix>=0)return ix;}return -1;};
+  detectedNameIndex=find([/^(name|full name|student name|name of student|your name|শিক্ষার্থীর নাম|ছাত্র.?ছাত্রীর নাম|নাম|আপনার নাম)$/i,/\b(student|your|full) name\b|শিক্ষার্থীর নাম|আপনার নাম/i,/name|নাম/i]);
+  detectedRollIndex=find([/^(roll|roll no\.?|roll number|student roll|student roll no\.?|রোল|রোল নং|রোল নম্বর|পরীক্ষার রোল)$/i,/roll|রোল/i]);
+  detectedBranchIndex=find([/^(branch|department|group|section|batch|শাখা|বিভাগ|ব্যাচ)$/i,/branch|department|section|শাখা|বিভাগ|গ্রুপ/i]);
+  detectedScoreIndex=find([/^(score|total score|quiz score|mcq score|points|স্কোর|মোট নম্বর|প্রাপ্ত নম্বর|এমসিকিউ নম্বর)$/i,/\bscore\b|\bpoints\b|স্কোর|মোট নম্বর|প্রাপ্ত নম্বর|mcq score/i]);
+}
+function populateSelect(selectId, selected, optional=false){const sel=$(selectId);sel.innerHTML='';if(optional){const op=document.createElement('option');op.value='-1';op.textContent='— নির্বাচন করুন / নেই —';sel.appendChild(op);}headers.forEach((h,i)=>{const op=document.createElement('option');op.value=String(i);op.textContent=`${i+1}. ${asText(h)||`কলাম ${i+1}`}`;sel.appendChild(op);});sel.disabled=false;sel.value=String(selected>=0?selected:(optional?-1:0));}
+function selectedIndex(id){const v=Number($(id).value);return Number.isInteger(v)?v:-1;}
+function buildQuestionDefs(){
+  const prior=new Map(questionDefs.map(q=>[q.index,q])); const exclude=new Set([selectedIndex('nameCol'),selectedIndex('rollCol'),selectedIndex('branchCol'),selectedIndex('mcqScoreCol')]);
+  questionDefs=headers.map((header,index)=>({header,index})).filter(o=>!exclude.has(o.index)&&!isMetaHeader(o.header)).map(o=>{const old=prior.get(o.index);return old||{index:o.index,title:asText(o.header)||`প্রশ্ন ${o.index+1}`,answer:'',points:1,enabled:true};});
+  renderQuestionTable();
+}
+function renderQuestionTable(){const tbody=$('questionTableBody');tbody.innerHTML='';$('questionCount').textContent=`${questionDefs.length}টি সম্ভাব্য MCQ প্রশ্ন পাওয়া গেছে`;
+  if(!questionDefs.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.className='empty';td.textContent='MCQ কলাম পাওয়া যায়নি—নাম/রোলের সেটিংস যাচাই করুন।';tr.appendChild(td);tbody.appendChild(tr);calculateResults();return;}
+  questionDefs.forEach(q=>{const tr=document.createElement('tr');const enTd=document.createElement('td'),cb=document.createElement('input');cb.type='checkbox';cb.checked=q.enabled;cb.setAttribute('aria-label',`${q.title} গণনায় ধরুন`);cb.addEventListener('change',()=>{q.enabled=cb.checked;calculateResults();});enTd.appendChild(cb);
+    const title=document.createElement('td');title.textContent=q.title;title.style.whiteSpace='normal';title.style.minWidth='180px';const ansTd=document.createElement('td'),ans=document.createElement('input');ans.type='text';ans.value=q.answer;ans.placeholder='সঠিক উত্তর';ans.addEventListener('input',()=>{q.answer=ans.value;calculateResults();});ansTd.appendChild(ans);
+    const ptsTd=document.createElement('td'),pts=document.createElement('input');pts.type='number';pts.min='0';pts.step='0.01';pts.value=String(q.points);pts.addEventListener('input',()=>{const n=num(pts.value);q.points=n===null||n<0?0:n;calculateResults();});ptsTd.appendChild(pts);tr.append(enTd,title,ansTd,ptsTd);tbody.appendChild(tr);
+  }); calculateResults();
+}
+function activeData(row){const n=selectedIndex('nameCol'),r=selectedIndex('rollCol'),b=selectedIndex('branchCol');return {name:n>=0?asText(row[n]):'',roll:r>=0?asText(row[r]):'',branch:b>=0?asText(row[b]):''};}
+function getStudentByRoll(roll){const key=rollKey(roll);if(!key)return null;return dataRows.find(row=>rollKey(activeData(row).roll)===key)||null;}
+function writtenFor(roll){const key=rollKey(roll);return key&&writtenByRoll.has(key)?writtenByRoll.get(key):null;}
+function matchingAnswer(response, answerKey){const val=normalize(response);if(!val)return false;return String(answerKey).split('|').map(normalize).filter(Boolean).includes(val);}
+function statusFor(s, missingKeys){if(s.identityIssue)return {label:'নাম/রোল যাচাই',cls:'pill-error'};if(missingKeys>0&&!s.mcqFromSource)return {label:'MCQ Key বাকি',cls:'pill-key'};if(s.written===null)return {label:'লিখিত বাকি',cls:'pill-pending'};return {label:'সম্পন্ন',cls:'pill-good'};}
+function calculateResults(){
+  const negative=Math.max(0,num($('negativeMark').value)??0),active=questionDefs.filter(q=>q.enabled),keyed=active.filter(q=>normalize(q.answer)!==''),missingKeys=active.filter(q=>normalize(q.answer)==='').length,scoreColumn=selectedIndex('mcqScoreCol'),allKeysComplete=active.length>0&&missingKeys===0;
+  const staged=[];
+  dataRows.forEach((row,sourceIndex)=>{if(!row.some(v=>asText(v)!==''))return;const identity=activeData(row);let answered=0,correct=0,wrong=0,correctMarks=0;
+    active.forEach(q=>{const response=asText(row[q.index]);if(response)answered++;});
+    keyed.forEach(q=>{const response=asText(row[q.index]);if(!response)return;if(matchingAnswer(response,q.answer)){correct++;correctMarks+=q.points;}else wrong++;});
+    const rawScore=scoreColumn>=0?num(row[scoreColumn]):null;
+    let deduction=0,mcq=0,correctValue=correct,wrongValue=wrong,usesSourceScore=false;
+    if(allKeysComplete){deduction=wrong*negative;mcq=Math.max(0,correctMarks-deduction);}
+    else if(rawScore!==null){mcq=Math.max(0,rawScore);correctValue=null;wrongValue=null;usesSourceScore=true;}
+    else {deduction=wrong*negative;mcq=Math.max(0,correctMarks-deduction);}
+    const written=writtenFor(identity.roll),total=mcq+(written===null?0:written);
+    staged.push({sourceIndex,name:identity.name,roll:identity.roll,branch:identity.branch,answered,correct:correctValue,wrong:wrongValue,negative:allKeysComplete||(!usesSourceScore&&keyed.length>0)?deduction:null,mcq,written,total,identityIssue:!identity.name||!identity.roll,sourceRow:row,unmatchedWritten:false,mcqFromSource:usesSourceScore});
+  });
+  if($('includeUnmatchedWritten').checked){const known=new Set(staged.map(s=>rollKey(s.roll)).filter(Boolean));for(const [key,mark] of writtenByRoll){if(!known.has(key)){staged.push({sourceIndex:1e9+staged.length,name:'',roll:key,branch:'',answered:0,correct:null,wrong:null,negative:null,mcq:0,written:mark,total:mark,identityIssue:false,sourceRow:[],unmatchedWritten:true,mcqFromSource:false});}}}
+  staged.sort((a,b)=>b.total-a.total||a.name.localeCompare(b.name,'bn')||a.sourceIndex-b.sourceIndex);
+  let prev=null,rank=0;staged.forEach((s,i)=>{if(prev===null||Math.abs(s.total-prev)>1e-9)rank=i+1;s.rank=rank;prev=s.total;});results=staged;renderResults(missingKeys);
+}
+function renderResults(missingKeys=questionDefs.filter(q=>q.enabled&&!normalize(q.answer)).length){
+  $('resultsHeading').textContent=asText($('resultTitle').value)||'রেজাল্ট শিট';$('statCount').textContent=bn(results.length);$('statHighest').textContent=bn(results.length?Math.max(...results.map(r=>r.total)):0);$('statAverage').textContent=bn(results.length?results.reduce((sum,r)=>sum+r.total,0)/results.length:0);$('statPending').textContent=bn(results.filter(r=>r.written===null).length);
+  const search=normalize($('searchInput').value),filter=$('filterSelect').value;
+  const visible=results.filter(s=>{const matchesSearch=!search||normalize(s.name).includes(search)||normalize(s.roll).includes(search)||normalize(s.branch).includes(search);const status=statusFor(s,missingKeys);const matchesFilter=filter==='all'||(filter==='pending'&&s.written===null)||(filter==='issues'&&s.identityIssue)||(filter==='key'&&missingKeys>0);return matchesSearch&&matchesFilter;});
+  const tbody=$('resultsTableBody');tbody.innerHTML='';if(!visible.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=12;td.className='empty';td.textContent=results.length?'এই খোঁজ/ফিল্টারে কোনো শিক্ষার্থী পাওয়া যায়নি।':'প্রথমে Responses ফাইল আপলোড করুন।';tr.appendChild(td);tbody.appendChild(tr);}
+  else visible.forEach(s=>{const tr=document.createElement('tr');const cells=[{v:s.rank,c:'numeric'},{v:s.unmatchedWritten?'(ফর্মে নেই)':(s.name||'—')},{v:s.roll||'—'},{v:s.branch||'—'},{v:s.answered,c:'numeric'},{v:s.correct===null?'—':s.correct,c:'numeric'},{v:s.wrong===null?'—':s.wrong,c:'numeric'},{v:s.negative===null?'—':bn(s.negative),c:'numeric'},{v:bn(s.mcq),c:'numeric'},{v:s.written===null?'—':bn(s.written),c:'numeric'},{v:bn(s.total),c:'numeric'}];cells.forEach(cell=>{const td=document.createElement('td');td.textContent=String(cell.v);if(cell.c)td.className=cell.c;tr.appendChild(td);});const td=document.createElement('td'),pill=document.createElement('span'),st=s.unmatchedWritten?{label:'ফর্মে রোল নেই',cls:'pill-error'}:statusFor(s,missingKeys);pill.className=`pill ${st.cls}`;pill.textContent=st.label;td.appendChild(pill);tr.appendChild(td);tbody.appendChild(tr);});
+  const enabled=questionDefs.filter(q=>q.enabled),noKeys=enabled.filter(q=>!normalize(q.answer)).length;
+  if(!dataRows.length){hideMessage($('resultsMessage'));}
+  else {const unmatched=[...writtenByRoll.keys()].filter(k=>!dataRows.some(r=>rollKey(activeData(r).roll)===k)).length;const everyRowHasScore=selectedIndex('mcqScoreCol')>=0&&dataRows.every(r=>num(r[selectedIndex('mcqScoreCol')])!==null);
+    if(noKeys>0&&!everyRowHasScore){message($('resultsMessage'),`${dataRows.length}টি রেসপন্স পাওয়া গেছে। ${noKeys}টি MCQ প্রশ্নের সঠিক উত্তর এখনও দেওয়া হয়নি। Score কলাম না থাকলে সঠিক MCQ নম্বর পেতে সব উত্তর বসান।`,'warn');}
+    else if(noKeys>0&&everyRowHasScore){message($('resultsMessage'),`${dataRows.length}টি রেসপন্স পাওয়া গেছে। MCQ নম্বর Google Form-এর Score কলাম থেকে নেওয়া হচ্ছে; সঠিক/ভুলের সংখ্যা ও custom negative marking গণনা করতে সব Answer Key দিন.${unmatched?` ${unmatched}টি লিখিত রোল মেলেনি.`:''}`,'success');}
+    else {message($('resultsMessage'),`${results.length} জনের ফলাফল তৈরি হয়েছে।${unmatched?` ${unmatched}টি লিখিত রোল Responses ফাইলে মেলেনি।`:''} নম্বর/Answer Key বদলালে ফলাফল আপডেট হবে।`,'success');}
+  }
+}
+function columnChanged(){buildQuestionDefs();}
+function loadMatrix(matrix, sheetName){
+  if(!matrix||!matrix.length){showFileStatus('এই শিটে কোনো তথ্য পাওয়া যায়নি। অন্য শিট বেছে নিন।','warn');return;}
+  const first=matrix.findIndex(row=>row&&row.some(cell=>asText(cell)!==''));if(first<0){showFileStatus('ফাইলটি খালি।','warn');return;}
+  headers=(matrix[first]||[]).map((h,i)=>asText(h)||`কলাম ${i+1}`);dataRows=matrix.slice(first+1).filter(row=>row&&row.some(cell=>asText(cell)!=='')).map(row=>{const a=row.slice(0,headers.length);while(a.length<headers.length)a.push('');return a;});activeSheetName=sheetName;
+  detectColumns();populateSelect('nameCol',detectedNameIndex,true);populateSelect('rollCol',detectedRollIndex,true);populateSelect('branchCol',detectedBranchIndex,true);populateSelect('mcqScoreCol',detectedScoreIndex,true);
+  questionDefs=[];buildQuestionDefs();writtenByRoll.clear();$('bulkWritten').value='';$('singleRoll').value='';$('singleWritten').value='';$('includeUnmatchedWritten').checked=false;
+  $('fileNameLabel').textContent=sourceFileName;$('filePillName').textContent=sourceFileName;$('filePillRows').textContent=`${dataRows.length}টি রেসপন্স · শিট: ${sheetName}`;$('filePill').classList.remove('hidden');$('questionCard').classList.remove('hidden');$('writtenCard').classList.remove('hidden');
+  showFileStatus(`${dataRows.length}টি রেসপন্স পাওয়া গেছে। নাম ও রোলের কলাম মিলিয়ে নিন; তারপর প্রতিটি MCQ-এর সঠিক উত্তর দিন।`,'success');calculateResults();$('questionCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function loadFile(file){if(!file)return;sourceFileName=file.name;const lower=file.name.toLowerCase();if(!lower.endsWith('.xlsx')&&!lower.endsWith('.csv')){showFileStatus('Google Forms থেকে .xlsx অথবা .csv ফাইল ডাউনলোড করে দিন। পুরোনো .xls সমর্থিত নয়।','warn');return;}
+  $('fileNameLabel').textContent='ফাইল পড়া হচ্ছে…';hideMessage($('uploadMessage'));
+  try{let parsed;if(lower.endsWith('.csv')){const matrix=parseCSV(await file.text());parsed=[{name:'Responses',matrix}];}else{parsed=await readXlsx(await file.arrayBuffer());}
+    workbookSheets=parsed;const picker=$('sheetPicker');picker.innerHTML='';parsed.forEach((sh,i)=>{const op=document.createElement('option');op.value=String(i);op.textContent=sh.name;picker.appendChild(op);});$('sheetPickerWrap').classList.toggle('hidden',parsed.length<2);picker.value='0';loadMatrix(parsed[0].matrix,parsed[0].name);
+  }catch(err){console.error(err);showFileStatus(`ফাইল পড়া যায়নি: ${err.message||'অজানা সমস্যা'} CSV হিসেবে ডাউনলোড করে চেষ্টা করুন।`,'error');$('fileNameLabel').textContent=file.name;}}
+function pasteRows(text){return String(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);}
+function parseWrittenLine(line){let parts=line.split('\t');if(parts.length<2)parts=line.split(/[,;]/);if(parts.length<2){const m=line.match(/^(.+?)\s+([০-৯٠-٩\d]+(?:[.,][০-৯٠-٩\d]+)?)$/);if(m)parts=[m[1],m[2]];}
+  if(parts.length<2)return null;let roll=asText(parts[0]),markRaw=asText(parts[parts.length-1]);if(/^(roll|roll no\.?|রোল|রোল নম্বর|student id)$/i.test(normalize(roll))||/^(written|written marks|লিখিত|নম্বর)$/i.test(normalize(markRaw)))return null;let mark=num(markRaw.replace(/,/g,'.'));if(!roll||mark===null||mark<0)return null;return {roll,mark};}
+function applyBulk(){const lines=pasteRows($('bulkWritten').value);if(!lines.length){message($('writtenMessage'),'প্রথমে Excel থেকে রোল ও লিখিত নম্বর কপি করে পেস্ট করুন।','warn');return;}let applied=0,skipped=0,matched=0,unmatched=0;const seen=new Set();lines.forEach(line=>{const item=parseWrittenLine(line);if(!item){skipped++;return;}const key=rollKey(item.roll);if(!key){skipped++;return;}writtenByRoll.set(key,item.mark);applied++;seen.add(key);if(dataRows.some(r=>rollKey(activeData(r).roll)===key))matched++;else unmatched++;});calculateResults();let msg=`${applied}টি রোলের লিখিত নম্বর যোগ হয়েছে; ${matched}টি রেসপন্স শিটে মিলেছে`;if(unmatched)msg+=`, ${unmatched}টি রোল মেলেনি`;if(skipped)msg+=`, ${skipped}টি লাইন বাদ গেছে`;msg+='।';message($('writtenMessage'),msg,applied?'success':'warn');}
+function applySingle(){const roll=asText($('singleRoll').value),mark=num($('singleWritten').value);if(!roll||mark===null||mark<0){message($('writtenMessage'),'সঠিক রোল ও শূন্য বা তার বেশি নম্বর দিন।','warn');return;}writtenByRoll.set(rollKey(roll),mark);const row=getStudentByRoll(roll);calculateResults();message($('writtenMessage'),`${row?activeData(row).name||roll:`রোল ${roll}`}–এর লিখিত নম্বর ${bn(mark)} যোগ হয়েছে${row?'।':'। রোলটি Responses ফাইলে মেলেনি; রোলটি ভুল কি না যাচাই করুন।'}`,row?'success':'warn');}
+function clearWritten(){if(!confirm('সব লিখিত নম্বর মুছে ফেলবেন?'))return;writtenByRoll.clear();calculateResults();message($('writtenMessage'),'সব লিখিত নম্বর মুছে দেওয়া হয়েছে।','success');}
+function resultHeaders(){return ['মেধাক্রম','শিক্ষার্থীর নাম','রোল','শাখা','উত্তর দিয়েছে','সঠিক','ভুল','নেগেটিভ কর্তন','MCQ নম্বর','লিখিত নম্বর','মোট নম্বর','অবস্থা'];}
+function resultRows(){const missing=questionDefs.filter(q=>q.enabled&&!normalize(q.answer)).length;return results.map(s=>[s.rank,s.unmatchedWritten?'(ফর্মে নেই)':s.name,s.roll,s.branch,s.answered,s.correct===null?'':s.correct,s.wrong===null?'':s.wrong,s.negative===null?'':round2(s.negative),round2(s.mcq),s.written===null?'':s.written,round2(s.total),s.unmatchedWritten?'ফর্মে রোল নেই':statusFor(s,missing).label]);}
+function round2(n){return Math.round((Number(n)+Number.EPSILON)*100)/100;}
+function csvCell(value){const s=String(value??'');return /[",\r\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
+function safeFilename(name){return (String(name||'result').replace(/[\\/:*?"<>|]+/g,'-').trim().replace(/\s+/g,'_').slice(0,80)||'result');}
+function downloadBlob(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+function downloadCSV(){if(!results.length){message($('resultsMessage'),'ডাউনলোড করার মতো কোনো রেজাল্ট নেই।','warn');return;}const matrix=[[asText($('resultTitle').value)||'পরীক্ষার ফলাফল'],[],resultHeaders(),...resultRows()];const csv='\ufeff'+matrix.map(row=>row.map(csvCell).join(',')).join('\r\n');downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8;'}),`${safeFilename($('resultTitle').value)}.csv`);}
+
+// Minimal XLSX writer (stored ZIP entries): creates a real Excel workbook without external CDN libraries.
+const crcTable=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
+function crc32(bytes){let c=0xffffffff;for(let i=0;i<bytes.length;i++)c=crcTable[(c^bytes[i])&255]^(c>>>8);return (c^0xffffffff)>>>0;}
+function u16(n){return new Uint8Array([n&255,(n>>>8)&255]);}function u32(n){return new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]);}
+function concatBytes(chunks){const total=chunks.reduce((n,c)=>n+c.length,0),out=new Uint8Array(total);let p=0;chunks.forEach(c=>{out.set(c,p);p+=c.length;});return out;}
+function zipStore(files){const local=[],central=[];let offset=0;for(const file of files){const name=encoder.encode(file.name),data=typeof file.data==='string'?encoder.encode(file.data):file.data,crc=crc32(data);const h=concatBytes([u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0x21),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),name,data]);local.push(h);const c=concatBytes([u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0x21),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),name]);central.push(c);offset+=h.length;}const centralBytes=concatBytes(central),localBytes=concatBytes(local);const end=concatBytes([u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(centralBytes.length),u32(localBytes.length),u16(0)]);return new Blob([localBytes,centralBytes,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});}
+function colLetters(n){let s='';for(n++;n>0;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;}
+function sheetXml(matrix, options={}){const headerRow=options.headerRow||1,freezeRows=options.freezeRows===undefined?headerRow:options.freezeRows,filter=options.filter!==false;let rows='';matrix.forEach((row,ri)=>{let cells='';(row||[]).forEach((value,ci)=>{if(value===null||value===undefined||value==='')return;const ref=colLetters(ci)+(ri+1);if(typeof value==='number'&&Number.isFinite(value)){cells+=`<c r="${ref}"><v>${value}</v></c>`;}else{cells+=`<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`;}});rows+=`<row r="${ri+1}">${cells}</row>`;});const lastCol=Math.max(0,...matrix.map(r=>(r||[]).length))-1;const pane=freezeRows>0?`<sheetViews><sheetView workbookViewId="0"><pane ySplit="${freezeRows}" topLeftCell="A${freezeRows+1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`:'';const filterXml=filter&&lastCol>=0?`<autoFilter ref="A${headerRow}:${colLetters(lastCol)}${Math.max(headerRow,matrix.length)}"/>`:'';return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="${XML_NS}">${pane}<sheetFormatPr defaultRowHeight="18"/><sheetData>${rows}</sheetData>${filterXml}</worksheet>`;}
+function downloadXLSX(){if(!results.length){message($('resultsMessage'),'ডাউনলোড করার মতো কোনো রেজাল্ট নেই।','warn');return;}const title=asText($('resultTitle').value)||'পরীক্ষার ফলাফল';const missing=questionDefs.filter(q=>q.enabled&&!normalize(q.answer)).length;const first=[[title],['তৈরির সময়',new Date().toLocaleString('bn-BD')],[],resultHeaders(),...resultRows()];
+  const details=[['প্রশ্ন', 'রেসপন্স কলাম', 'সঠিক উত্তর (| দিয়ে বিকল্প)', 'পূর্ণ নম্বর', 'নম্বর গণনায় ধরুন'],...questionDefs.map(q=>[q.title,headers[q.index]||'',q.answer,q.points,q.enabled?'হ্যাঁ':'না'])];
+  const summary=[['সারাংশ','মান'],['মোট রেসপন্স',dataRows.length],['রেজাল্টে শিক্ষার্থী',results.length],['সঠিক উত্তর দেওয়া হয়েছে এমন MCQ',questionDefs.filter(q=>q.enabled&&normalize(q.answer)).length],['Answer Key বাকি',missing],['ভুল উত্তরে কাটতি',num($('negativeMark').value)??0]];
+  const files=[
+    {name:'[Content_Types].xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`},
+    {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+    {name:'xl/workbook.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="${XML_NS}" xmlns:r="${REL_NS}"><sheets><sheet name="Result" sheetId="1" r:id="rId1"/><sheet name="MCQ Answer Key" sheetId="2" r:id="rId2"/><sheet name="Summary" sheetId="3" r:id="rId3"/></sheets></workbook>`},
+    {name:'xl/_rels/workbook.xml.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/></Relationships>`},
+    {name:'xl/worksheets/sheet1.xml',data:sheetXml(first,{headerRow:4,freezeRows:4,filter:true})},
+    {name:'xl/worksheets/sheet2.xml',data:sheetXml(details,{headerRow:1,freezeRows:1,filter:true})},
+    {name:'xl/worksheets/sheet3.xml',data:sheetXml(summary,{headerRow:1,freezeRows:1,filter:false})}
+  ];downloadBlob(zipStore(files),`${safeFilename(title)}.xlsx`);}
+
+$('chooseFileBtn').addEventListener('click',()=> $('fileInput').click());$('dropZone').addEventListener('click',e=>{if(e.target.id!=='chooseFileBtn')$('fileInput').click();});$('fileInput').addEventListener('change',e=>loadFile(e.target.files&&e.target.files[0]));
+['dragover','dragenter'].forEach(ev=>$('dropZone').addEventListener(ev,e=>{e.preventDefault();$('dropZone').classList.add('dragover');}));['dragleave','drop'].forEach(ev=>$('dropZone').addEventListener(ev,e=>{e.preventDefault();$('dropZone').classList.remove('dragover');}));$('dropZone').addEventListener('drop',e=>{const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)loadFile(f);});
+$('sheetPicker').addEventListener('change',()=>{const sh=workbookSheets[Number($('sheetPicker').value)];if(sh)loadMatrix(sh.matrix,sh.name);});
+['nameCol','rollCol','branchCol','mcqScoreCol'].forEach(id=>$(id).addEventListener('change',columnChanged));$('negativeMark').addEventListener('input',calculateResults);$('includeUnmatchedWritten').addEventListener('change',calculateResults);$('resultTitle').addEventListener('input',()=>{$('resultsHeading').textContent=asText($('resultTitle').value)||'রেজাল্ট শিট';});
+$('applyBulkBtn').addEventListener('click',applyBulk);$('clearBulkTextBtn').addEventListener('click',()=>$('bulkWritten').value='');$('clearWrittenBtn').addEventListener('click',clearWritten);$('applySingleBtn').addEventListener('click',applySingle);$('singleRoll').addEventListener('input',()=>{const row=getStudentByRoll($('singleRoll').value);$('studentNameHint').textContent=row?`নাম: ${activeData(row).name||'নাম নেই'}`:'রোল লিখলে নাম দেখাবে';});$('singleRoll').addEventListener('keydown',e=>{if(e.key==='Enter')$('singleWritten').focus();});$('singleWritten').addEventListener('keydown',e=>{if(e.key==='Enter')applySingle();});
+$('searchInput').addEventListener('input',()=>renderResults());$('filterSelect').addEventListener('change',()=>renderResults());$('downloadXlsxBtn').addEventListener('click',downloadXLSX);$('downloadCsvBtn').addEventListener('click',downloadCSV);$('resetKeysBtn').addEventListener('click',()=>{questionDefs.forEach(q=>q.answer='');renderQuestionTable();});
+// Initialize selectors and empty output.
+renderResults();
+})();
+</script>
 </body>
 </html>
